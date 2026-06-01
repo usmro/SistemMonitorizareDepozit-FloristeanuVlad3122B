@@ -41,6 +41,19 @@ add_executable(ProiectPOO
         ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
         ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
         ${sqlite3_SOURCE_DIR}/sqlite3.c
+        models/Produs.h
+        models/Categorie.h
+        models/Furnizor.h
+        models/Zona.h
+        models/Tranzactie.h
+        models/User.h
+        data/sha256.h
+        data/Database.h
+        core/Depozit.h
+        core/AlertaManager.h
+        core/Raport.h
+        ui/LoginUI.h
+        ui/MainUI.h
 )
 
 target_include_directories(ProiectPOO PRIVATE
