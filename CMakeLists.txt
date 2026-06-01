@@ -54,6 +54,7 @@ add_executable(ProiectPOO
         core/Raport.h
         ui/LoginUI.h
         ui/MainUI.h
+        tests/TestRunner.h
 )
 
 target_include_directories(ProiectPOO PRIVATE

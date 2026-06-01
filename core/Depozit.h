@@ -27,10 +27,19 @@ public:
             zone[z.getId()] = z;
     }
 
-    void adaugaProdus(Produs& p) {
+    void adaugaProdus(Produs& p, const std::string& observatii = "") {
         db.adaugaProdus(p);
         db.recalculeazaZone();
         incarcaDate();
+        for (auto& [id, prod] : produse) {
+            if (prod.getNume() == p.getNume() &&
+                prod.getCantitate() == p.getCantitate()) {
+                if (p.getCantitate() > 0)
+                    db.adaugaTranzactie(id, "INTRARE", p.getCantitate(),
+                        observatii.empty() ? "Produs nou adaugat" : observatii);
+                break;
+            }
+        }
     }
 
     void eliminaProdus(int id) {
@@ -42,22 +51,22 @@ public:
         incarcaDate();
     }
 
-    void adaugaStoc(int id, int cantitate) {
+    void adaugaStoc(int id, int cantitate, const std::string& observatii = "") {
         if (produse.find(id) == produse.end())
             throw std::runtime_error("Produsul nu exista!");
         produse[id] += cantitate;
         db.updateCantitate(id, produse[id].getCantitate());
-        db.adaugaTranzactie(id, "INTRARE", cantitate);
+        db.adaugaTranzactie(id, "INTRARE", cantitate, observatii);
         db.recalculeazaZone();
         incarcaDate();
     }
 
-    void scadeStoc(int id, int cantitate) {
+    void scadeStoc(int id, int cantitate, const std::string& observatii = "") {
         if (produse.find(id) == produse.end())
             throw std::runtime_error("Produsul nu exista!");
         produse[id] -= cantitate;
         db.updateCantitate(id, produse[id].getCantitate());
-        db.adaugaTranzactie(id, "IESIRE", cantitate);
+        db.adaugaTranzactie(id, "IESIRE", cantitate, observatii);
         db.recalculeazaZone();
         incarcaDate();
     }

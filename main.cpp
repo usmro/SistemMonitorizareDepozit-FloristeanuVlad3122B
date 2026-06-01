@@ -8,8 +8,14 @@
 #include "core/Depozit.h"
 #include "ui/LoginUI.h"
 #include "ui/MainUI.h"
+#include "tests/TestRunner.h"
 
 int main() {
+
+    // ===== TESTE UNITARE =====
+    TestRunner testRunner;
+    testRunner.ruleazaToate();
+
     if (!glfwInit()) return -1;
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);

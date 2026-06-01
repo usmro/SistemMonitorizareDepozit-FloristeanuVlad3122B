@@ -30,6 +30,8 @@ private:
     int pragAlerta = 10;
     int zonaSelectata = 1;
     int cantitateModificare = 1;
+    char observatiiStoc[256] = "";
+    char observatiiAdauga[256] = "";
     std::string mesajStatus = "";
 
     char editNume[128] = "";
@@ -44,10 +46,37 @@ private:
     int newRol = 1;
     std::string mesajAdmin = "";
 
+    int sortColProduse = 0;
+    bool sortAscProduse = true;
+    int sortColTranzactii = 0;
+    bool sortAscTranzactii = false;
+    int sortColUsers = 0;
+    bool sortAscUsers = true;
+    int sortColCategorii = 0;
+    bool sortAscCategorii = true;
+    int sortColFurnizori = 0;
+    bool sortAscFurnizori = true;
+
     static std::string toLower(const std::string& s) {
         std::string result = s;
         std::transform(result.begin(), result.end(), result.begin(), ::tolower);
         return result;
+    }
+
+    void sorteazaProduse(std::vector<Produs>& v) {
+        std::sort(v.begin(), v.end(), [&](const Produs& a, const Produs& b) {
+            bool cmp = false;
+            switch (sortColProduse) {
+                case 0: cmp = a.getId() < b.getId(); break;
+                case 1: cmp = toLower(a.getNume()) < toLower(b.getNume()); break;
+                case 2: cmp = a.getCantitate() < b.getCantitate(); break;
+                case 3: cmp = a.getPret() < b.getPret(); break;
+                case 4: cmp = a.getZonaId() < b.getZonaId(); break;
+                case 5: cmp = a.getCantitate() < b.getCantitate(); break;
+                default: cmp = a.getId() < b.getId(); break;
+            }
+            return sortAscProduse ? cmp : !cmp;
+        });
     }
 
     void renderZoneGrid() {
@@ -185,24 +214,44 @@ private:
             ImGuiTableFlags_Borders |
             ImGuiTableFlags_RowBg |
             ImGuiTableFlags_ScrollY |
-            ImGuiTableFlags_ScrollX,
+            ImGuiTableFlags_ScrollX |
+            ImGuiTableFlags_Sortable,
             ImVec2(0, 200)))
         {
             ImGui::TableSetupScrollFreeze(0, 1);
-            ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 40);
-            ImGui::TableSetupColumn("Nume", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn("Cantitate", ImGuiTableColumnFlags_WidthFixed, 80);
-            ImGui::TableSetupColumn("Pret", ImGuiTableColumnFlags_WidthFixed, 80);
-            ImGui::TableSetupColumn("Zona", ImGuiTableColumnFlags_WidthFixed, 70);
-            ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 80);
+            ImGui::TableSetupColumn("ID",
+                ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthFixed, 40);
+            ImGui::TableSetupColumn("Nume",
+                ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Cantitate",
+                ImGuiTableColumnFlags_WidthFixed, 80);
+            ImGui::TableSetupColumn("Pret",
+                ImGuiTableColumnFlags_WidthFixed, 80);
+            ImGui::TableSetupColumn("Zona",
+                ImGuiTableColumnFlags_WidthFixed, 70);
+            ImGui::TableSetupColumn("Status",
+                ImGuiTableColumnFlags_WidthFixed, 80);
             ImGui::TableHeadersRow();
 
+            if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs()) {
+                if (sortSpecs->SpecsDirty && sortSpecs->SpecsCount > 0) {
+                    sortColProduse = sortSpecs->Specs[0].ColumnIndex;
+                    sortAscProduse = sortSpecs->Specs[0].SortDirection == ImGuiSortDirection_Ascending;
+                    sortSpecs->SpecsDirty = false;
+                }
+            }
+
             std::string filtru(cautare);
+            std::vector<Produs> produseVec;
             for (auto& [id, p] : depozit.getProduse()) {
                 if (!filtru.empty() &&
                     toLower(p.getNume()).find(toLower(filtru)) == std::string::npos)
                     continue;
+                produseVec.push_back(p);
+            }
+            sorteazaProduse(produseVec);
 
+            for (auto& p : produseVec) {
                 ImGui::TableNextRow();
                 ImGui::TableSetColumnIndex(0);
                 ImGui::Text("%d", p.getId());
@@ -274,14 +323,17 @@ private:
                 ImGui::EndCombo();
             }
 
+            ImGui::InputText("Observatii##addObs", observatiiAdauga, sizeof(observatiiAdauga));
             ImGui::Spacing();
+
             if (ImGui::Button("Adauga##btn", ImVec2(120, 30))) {
                 if (strlen(numeProdus) > 0 && cantitate >= 0 && pret >= 0) {
                     try {
                         Produs p(0, numeProdus, cantitate, pret, pragAlerta, zonaSelectata);
-                        depozit.adaugaProdus(p);
+                        depozit.adaugaProdus(p, std::string(observatiiAdauga));
                         mesajStatus = "Produs adaugat cu succes!";
                         memset(numeProdus, 0, sizeof(numeProdus));
+                        memset(observatiiAdauga, 0, sizeof(observatiiAdauga));
                         cantitate = 0; pret = 0; pragAlerta = 10;
                         alertaManager.refresh(getProduseVec());
                     } catch (const std::exception& e) {
@@ -303,11 +355,15 @@ private:
             ImGui::InputInt("Cantitate##stoc", &cantitateModificare);
             if (cantitateModificare < 1) cantitateModificare = 1;
 
+            ImGui::InputText("Observatii##stocObs", observatiiStoc, sizeof(observatiiStoc));
             ImGui::Spacing();
+
             if (ImGui::Button("+ Adauga Stoc", ImVec2(130, 30))) {
                 try {
-                    depozit.adaugaStoc(produsSelectat, cantitateModificare);
+                    depozit.adaugaStoc(produsSelectat, cantitateModificare,
+                        std::string(observatiiStoc));
                     mesajStatus = "Stoc actualizat!";
+                    memset(observatiiStoc, 0, sizeof(observatiiStoc));
                     alertaManager.refresh(getProduseVec());
                 } catch (const std::exception& e) {
                     mesajStatus = e.what();
@@ -316,8 +372,10 @@ private:
             ImGui::SameLine();
             if (ImGui::Button("- Scade Stoc", ImVec2(130, 30))) {
                 try {
-                    depozit.scadeStoc(produsSelectat, cantitateModificare);
+                    depozit.scadeStoc(produsSelectat, cantitateModificare,
+                        std::string(observatiiStoc));
                     mesajStatus = "Stoc actualizat!";
+                    memset(observatiiStoc, 0, sizeof(observatiiStoc));
                     alertaManager.refresh(getProduseVec());
                 } catch (const std::exception& e) {
                     mesajStatus = e.what();
@@ -427,20 +485,50 @@ private:
 
         auto tranzactii = db.getTranzactii(100);
 
+        std::sort(tranzactii.begin(), tranzactii.end(),
+            [&](const TranzactieRecord& a, const TranzactieRecord& b) {
+                bool cmp = false;
+                switch (sortColTranzactii) {
+                    case 0: cmp = a.id < b.id; break;
+                    case 1: cmp = toLower(a.numeProdus) < toLower(b.numeProdus); break;
+                    case 2: cmp = a.tip < b.tip; break;
+                    case 3: cmp = a.cantitate < b.cantitate; break;
+                    case 4: cmp = a.data < b.data; break;
+                    case 5: cmp = toLower(a.observatii) < toLower(b.observatii); break;
+                    default: cmp = a.id < b.id; break;
+                }
+                return sortAscTranzactii ? cmp : !cmp;
+            });
+
         if (ImGui::BeginTable("tranzactii", 6,
             ImGuiTableFlags_Borders |
             ImGuiTableFlags_RowBg |
             ImGuiTableFlags_ScrollY |
-            ImGuiTableFlags_ScrollX))
+            ImGuiTableFlags_ScrollX |
+            ImGuiTableFlags_Sortable))
         {
             ImGui::TableSetupScrollFreeze(0, 1);
-            ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 40);
-            ImGui::TableSetupColumn("Produs", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableSetupColumn("Tip", ImGuiTableColumnFlags_WidthFixed, 80);
-            ImGui::TableSetupColumn("Cantitate", ImGuiTableColumnFlags_WidthFixed, 80);
-            ImGui::TableSetupColumn("Data", ImGuiTableColumnFlags_WidthFixed, 140);
-            ImGui::TableSetupColumn("Observatii", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("ID",
+                ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthFixed, 40);
+            ImGui::TableSetupColumn("Produs",
+                ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Tip",
+                ImGuiTableColumnFlags_WidthFixed, 80);
+            ImGui::TableSetupColumn("Cantitate",
+                ImGuiTableColumnFlags_WidthFixed, 80);
+            ImGui::TableSetupColumn("Data",
+                ImGuiTableColumnFlags_WidthFixed, 140);
+            ImGui::TableSetupColumn("Observatii",
+                ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableHeadersRow();
+
+            if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs()) {
+                if (sortSpecs->SpecsDirty && sortSpecs->SpecsCount > 0) {
+                    sortColTranzactii = sortSpecs->Specs[0].ColumnIndex;
+                    sortAscTranzactii = sortSpecs->Specs[0].SortDirection == ImGuiSortDirection_Ascending;
+                    sortSpecs->SpecsDirty = false;
+                }
+            }
 
             for (const auto& t : tranzactii) {
                 ImGui::TableNextRow();
@@ -513,39 +601,62 @@ private:
 
         if (ImGui::CollapsingHeader("Conturi Existente")) {
             auto users = db.getUsers();
+
+            std::sort(users.begin(), users.end(),
+                [&](const User& a, const User& b) {
+                    bool cmp = false;
+                    switch (sortColUsers) {
+                        case 0: cmp = a.getId() < b.getId(); break;
+                        case 1: cmp = toLower(a.getUsername()) < toLower(b.getUsername()); break;
+                        case 2: cmp = a.getPasswordHash() < b.getPasswordHash(); break;
+                        case 3: cmp = a.getRolString() < b.getRolString(); break;
+                        default: cmp = a.getId() < b.getId(); break;
+                    }
+                    return sortAscUsers ? cmp : !cmp;
+                });
+
             if (ImGui::BeginTable("users", 5,
                 ImGuiTableFlags_Borders |
                 ImGuiTableFlags_RowBg |
                 ImGuiTableFlags_ScrollY |
-                ImGuiTableFlags_ScrollX,
+                ImGuiTableFlags_ScrollX |
+                ImGuiTableFlags_Sortable,
                 ImVec2(0, 200)))
             {
                 ImGui::TableSetupScrollFreeze(0, 1);
-                ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 40);
-                ImGui::TableSetupColumn("Username", ImGuiTableColumnFlags_WidthFixed, 120);
-                ImGui::TableSetupColumn("Parola (hash)", ImGuiTableColumnFlags_WidthFixed, 300);
-                ImGui::TableSetupColumn("Rol", ImGuiTableColumnFlags_WidthFixed, 80);
-                ImGui::TableSetupColumn("Actiuni", ImGuiTableColumnFlags_WidthFixed, 180);
+                ImGui::TableSetupColumn("ID",
+                    ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthFixed, 40);
+                ImGui::TableSetupColumn("Username",
+                    ImGuiTableColumnFlags_WidthFixed, 120);
+                ImGui::TableSetupColumn("Parola (hash)",
+                    ImGuiTableColumnFlags_WidthFixed, 300);
+                ImGui::TableSetupColumn("Rol",
+                    ImGuiTableColumnFlags_WidthFixed, 80);
+                ImGui::TableSetupColumn("Actiuni",
+                    ImGuiTableColumnFlags_NoSort | ImGuiTableColumnFlags_WidthFixed, 180);
                 ImGui::TableHeadersRow();
+
+                if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs()) {
+                    if (sortSpecs->SpecsDirty && sortSpecs->SpecsCount > 0) {
+                        sortColUsers = sortSpecs->Specs[0].ColumnIndex;
+                        sortAscUsers = sortSpecs->Specs[0].SortDirection == ImGuiSortDirection_Ascending;
+                        sortSpecs->SpecsDirty = false;
+                    }
+                }
 
                 for (auto& u : users) {
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
                     ImGui::Text("%d", u.getId());
-
                     ImGui::TableSetColumnIndex(1);
                     ImGui::Text("%s", u.getUsername().c_str());
-
                     ImGui::TableSetColumnIndex(2);
-                    // Afiseaza hash-ul complet
                     ImGui::Text("%s", u.getPasswordHash().c_str());
-
                     ImGui::TableSetColumnIndex(3);
                     if (u.eAdmin())
                         ImGui::TextColored(ImVec4(0.2f,0.7f,1.0f,1), "Admin");
                     else
                         ImGui::Text("Angajat");
-
                     ImGui::TableSetColumnIndex(4);
                     if (u.getUsername() != "admin") {
                         if (u.eActiv()) {
@@ -579,16 +690,39 @@ private:
             ImGui::Spacing();
 
             auto categorii = db.getCategorii();
+
+            std::sort(categorii.begin(), categorii.end(),
+                [&](const Categorie& a, const Categorie& b) {
+                    bool cmp = false;
+                    switch (sortColCategorii) {
+                        case 0: cmp = toLower(a.getNume()) < toLower(b.getNume()); break;
+                        case 1: cmp = toLower(a.getDescriere()) < toLower(b.getDescriere()); break;
+                        default: cmp = toLower(a.getNume()) < toLower(b.getNume()); break;
+                    }
+                    return sortAscCategorii ? cmp : !cmp;
+                });
+
             if (ImGui::BeginTable("categorii", 2,
                 ImGuiTableFlags_Borders |
                 ImGuiTableFlags_RowBg |
-                ImGuiTableFlags_ScrollY,
+                ImGuiTableFlags_ScrollY |
+                ImGuiTableFlags_Sortable,
                 ImVec2(0, 150)))
             {
                 ImGui::TableSetupScrollFreeze(0, 1);
-                ImGui::TableSetupColumn("Nume", ImGuiTableColumnFlags_WidthStretch);
-                ImGui::TableSetupColumn("Descriere", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("Nume",
+                    ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("Descriere",
+                    ImGuiTableColumnFlags_WidthStretch);
                 ImGui::TableHeadersRow();
+
+                if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs()) {
+                    if (sortSpecs->SpecsDirty && sortSpecs->SpecsCount > 0) {
+                        sortColCategorii = sortSpecs->Specs[0].ColumnIndex;
+                        sortAscCategorii = sortSpecs->Specs[0].SortDirection == ImGuiSortDirection_Ascending;
+                        sortSpecs->SpecsDirty = false;
+                    }
+                }
 
                 std::string filtruCat(cautareCategorie);
                 for (const auto& c : categorii) {
@@ -613,17 +747,42 @@ private:
             ImGui::Spacing();
 
             auto furnizori = db.getFurnizori();
+
+            std::sort(furnizori.begin(), furnizori.end(),
+                [&](const Furnizor& a, const Furnizor& b) {
+                    bool cmp = false;
+                    switch (sortColFurnizori) {
+                        case 0: cmp = toLower(a.getNume()) < toLower(b.getNume()); break;
+                        case 1: cmp = a.getTelefon() < b.getTelefon(); break;
+                        case 2: cmp = toLower(a.getEmail()) < toLower(b.getEmail()); break;
+                        default: cmp = toLower(a.getNume()) < toLower(b.getNume()); break;
+                    }
+                    return sortAscFurnizori ? cmp : !cmp;
+                });
+
             if (ImGui::BeginTable("furnizori", 3,
                 ImGuiTableFlags_Borders |
                 ImGuiTableFlags_RowBg |
-                ImGuiTableFlags_ScrollY,
+                ImGuiTableFlags_ScrollY |
+                ImGuiTableFlags_Sortable,
                 ImVec2(0, 150)))
             {
                 ImGui::TableSetupScrollFreeze(0, 1);
-                ImGui::TableSetupColumn("Nume", ImGuiTableColumnFlags_WidthStretch);
-                ImGui::TableSetupColumn("Telefon", ImGuiTableColumnFlags_WidthFixed, 120);
-                ImGui::TableSetupColumn("Email", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("Nume",
+                    ImGuiTableColumnFlags_DefaultSort | ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("Telefon",
+                    ImGuiTableColumnFlags_WidthFixed, 120);
+                ImGui::TableSetupColumn("Email",
+                    ImGuiTableColumnFlags_WidthStretch);
                 ImGui::TableHeadersRow();
+
+                if (ImGuiTableSortSpecs* sortSpecs = ImGui::TableGetSortSpecs()) {
+                    if (sortSpecs->SpecsDirty && sortSpecs->SpecsCount > 0) {
+                        sortColFurnizori = sortSpecs->Specs[0].ColumnIndex;
+                        sortAscFurnizori = sortSpecs->Specs[0].SortDirection == ImGuiSortDirection_Ascending;
+                        sortSpecs->SpecsDirty = false;
+                    }
+                }
 
                 std::string filtruFurn(cautareFurnizor);
                 for (const auto& f : furnizori) {
