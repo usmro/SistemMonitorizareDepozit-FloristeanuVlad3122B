@@ -117,6 +117,7 @@ public:
             executeSQL("INSERT INTO users (username, password_hash, rol) VALUES ('admin', '" + hash + "', 'ADMIN')");
         }
 
+
         // Creeaza cele 16 zone daca nu exista
         sqlite3_prepare_v2(db,
             "SELECT COUNT(*) FROM zone",
@@ -133,6 +134,54 @@ public:
                 executeSQL(sql);
             }
         }
+        // Categorii implicite
+sqlite3_prepare_v2(db,
+    "SELECT COUNT(*) FROM categorii",
+    -1, &stmt, nullptr);
+sqlite3_step(stmt);
+count = sqlite3_column_int(stmt, 0);
+sqlite3_finalize(stmt);
+
+if (count == 0) {
+    executeSQL("INSERT INTO categorii (nume, descriere) VALUES ('Electronice', 'Produse electronice si IT')");
+    executeSQL("INSERT INTO categorii (nume, descriere) VALUES ('Alimente', 'Produse alimentare')");
+    executeSQL("INSERT INTO categorii (nume, descriere) VALUES ('Cosmetice', 'Produse cosmetice si ingrijire')");
+    executeSQL("INSERT INTO categorii (nume, descriere) VALUES ('Mobilier', 'Mobila si decoratiuni')");
+}
+
+// Furnizori impliciti
+sqlite3_prepare_v2(db,
+    "SELECT COUNT(*) FROM furnizori",
+    -1, &stmt, nullptr);
+sqlite3_step(stmt);
+count = sqlite3_column_int(stmt, 0);
+sqlite3_finalize(stmt);
+
+if (count == 0) {
+    executeSQL("INSERT INTO furnizori (nume, telefon, email) VALUES ('TechSupply SRL', '0721000001', 'contact@techsupply.ro')");
+    executeSQL("INSERT INTO furnizori (nume, telefon, email) VALUES ('FoodDist SA', '0721000002', 'office@fooddist.ro')");
+    executeSQL("INSERT INTO furnizori (nume, telefon, email) VALUES ('CosmeticPro', '0721000003', 'info@cosmeticpro.ro')");
+}
+
+// Produse implicite
+sqlite3_prepare_v2(db,
+    "SELECT COUNT(*) FROM produse",
+    -1, &stmt, nullptr);
+sqlite3_step(stmt);
+count = sqlite3_column_int(stmt, 0);
+sqlite3_finalize(stmt);
+
+if (count == 0) {
+    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Laptop Dell', 45, 3500.00, 10, 1, 1, 1)");
+    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Mouse Wireless', 8, 120.00, 20, 1, 1, 1)");
+    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Cafea Jacobs 500g', 5, 35.00, 15, 3, 2, 2)");
+    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Sampon Pantene', 0, 22.50, 10, 5, 3, 3)");
+    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Tastatura Mecanica', 30, 450.00, 5, 2, 1, 1)");
+    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Ulei Floarea Soarelui', 120, 12.00, 30, 4, 2, 2)");
+    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Monitor 27inch', 12, 1200.00, 5, 2, 1, 1)");
+    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Crema Nivea', 3, 18.00, 10, 6, 3, 3)");
+}
+
     }
 
     // ===== AUTH =====
@@ -245,6 +294,16 @@ public:
         sqlite3_bind_int(stmt, 2, zonaId);
         sqlite3_step(stmt);
         sqlite3_finalize(stmt);
+    }
+    void recalculeazaZone() {
+        executeSQL("UPDATE zone SET capacitate_curenta = 0");
+        executeSQL(R"(
+        UPDATE zone SET capacitate_curenta = (
+            SELECT COALESCE(SUM(cantitate), 0)
+            FROM produse
+            WHERE produse.zona_id = zone.id
+        )
+    )");
     }
 
     // ===== CATEGORII =====

@@ -14,23 +14,22 @@ private:
 
 public:
     Depozit(Database& db) : db(db) {
+        db.recalculeazaZone();
         incarcaDate();
     }
 
     void incarcaDate() {
         produse.clear();
         zone.clear();
-
         for (auto& p : db.getProduse())
             produse[p.getId()] = p;
-
         for (auto& z : db.getZone())
             zone[z.getId()] = z;
     }
 
-    // ===== PRODUSE =====
     void adaugaProdus(Produs& p) {
         db.adaugaProdus(p);
+        db.recalculeazaZone();
         incarcaDate();
     }
 
@@ -38,7 +37,9 @@ public:
         if (produse.find(id) == produse.end())
             throw std::runtime_error("Produsul nu exista!");
         db.eliminaProdus(id);
+        db.recalculeazaZone();
         produse.erase(id);
+        incarcaDate();
     }
 
     void adaugaStoc(int id, int cantitate) {
@@ -47,13 +48,8 @@ public:
         produse[id] += cantitate;
         db.updateCantitate(id, produse[id].getCantitate());
         db.adaugaTranzactie(id, "INTRARE", cantitate);
-
-        // Actualizeaza zona
-        int zonaId = produse[id].getZonaId();
-        if (zone.find(zonaId) != zone.end()) {
-            zone[zonaId].adaugaCapacitate(cantitate);
-            db.updateZona(zonaId, zone[zonaId].getCapacitateCurenta());
-        }
+        db.recalculeazaZone();
+        incarcaDate();
     }
 
     void scadeStoc(int id, int cantitate) {
@@ -62,16 +58,10 @@ public:
         produse[id] -= cantitate;
         db.updateCantitate(id, produse[id].getCantitate());
         db.adaugaTranzactie(id, "IESIRE", cantitate);
-
-        // Actualizeaza zona
-        int zonaId = produse[id].getZonaId();
-        if (zone.find(zonaId) != zone.end()) {
-            zone[zonaId].scadeCapacitate(cantitate);
-            db.updateZona(zonaId, zone[zonaId].getCapacitateCurenta());
-        }
+        db.recalculeazaZone();
+        incarcaDate();
     }
 
-    // ===== GETTERS =====
     std::unordered_map<int, Produs>& getProduse() { return produse; }
     std::unordered_map<int, Zona>& getZone() { return zone; }
 
@@ -85,7 +75,6 @@ public:
         return it != zone.end() ? &it->second : nullptr;
     }
 
-    // ===== RAPOARTE =====
     std::vector<Produs> getProduseSubPrag() const {
         std::vector<Produs> rezultat;
         for (const auto& [id, p] : produse)

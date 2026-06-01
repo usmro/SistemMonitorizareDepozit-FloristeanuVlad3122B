@@ -28,18 +28,22 @@ public:
 
     float getProcentOcupare() const {
         if (capacitateMax == 0) return 0.0f;
-        return (float)capacitateCurenta / (float)capacitateMax * 100.0f;
+        float p = (float)capacitateCurenta / (float)capacitateMax * 100.0f;
+        return p > 100.0f ? 100.0f : p;
     }
 
-    // Culoare bazata pe procent - pentru ImGui
     ImVec4 getCuloare() const {
         float procent = getProcentOcupare();
-        if (procent >= 61.0f)
-            return ImVec4(0.9f, 0.2f, 0.2f, 1.0f); // Rosu
-        else if (procent >= 21.0f)
-            return ImVec4(0.9f, 0.6f, 0.1f, 1.0f); // Portocaliu
+        if (procent == 0.0f)
+            return ImVec4(0.4f, 0.4f, 0.4f, 1.0f);   // Gri - Goala
+        else if (procent <= 25.0f)
+            return ImVec4(0.2f, 0.8f, 0.2f, 1.0f);   // Verde
+        else if (procent <= 50.0f)
+            return ImVec4(0.9f, 0.9f, 0.1f, 1.0f);   // Galben
+        else if (procent <= 75.0f)
+            return ImVec4(0.9f, 0.6f, 0.1f, 1.0f);   // Portocaliu
         else
-            return ImVec4(0.2f, 0.8f, 0.2f, 1.0f); // Verde
+            return ImVec4(0.9f, 0.2f, 0.2f, 1.0f);   // Rosu
     }
 
     bool eGoala() const { return capacitateCurenta == 0; }

@@ -15,20 +15,15 @@ private:
     AlertaManager alertaManager;
     User userCurent;
 
-    // Stare UI
     int produsSelectat = -1;
+    int zonaCliclata = -1;
     char cautare[128] = "";
 
-    // Formular adauga produs
     char numeProdus[128] = "";
     int cantitate = 0;
     float pret = 0.0f;
     int pragAlerta = 10;
     int zonaSelectata = 1;
-    int categorieSelectata = 0;
-    int furnizorSelectat = 0;
-
-    // Formular stoc
     int cantitateModificare = 1;
     std::string mesajStatus = "";
 
@@ -42,7 +37,6 @@ private:
         float spacing = 8.0f;
         int col = 0;
 
-        // Sorteaza zone dupa litera
         std::vector<Zona*> zoneVec;
         for (auto& [id, z] : zone)
             zoneVec.push_back(&z);
@@ -54,20 +48,66 @@ private:
                 ImGui::SameLine(0, spacing);
 
             ImVec4 culoare = z->getCuloare();
+            bool selectata = (zonaCliclata == z->getId());
+
+            if (selectata)
+                ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 3.0f);
+
             ImGui::PushStyleColor(ImGuiCol_Button, culoare);
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
-                ImVec4(culoare.x+0.1f, culoare.y+0.1f, culoare.z+0.1f, 1.0f));
+                ImVec4(culoare.x+0.15f, culoare.y+0.15f, culoare.z+0.15f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, culoare);
 
             std::string label = std::string("Zona ") + z->getLitera() +
-                "\n" + std::to_string((int)z->getProcentOcupare()) + "%";
+                "\n" + std::to_string((int)z->getProcentOcupare()) + "%" +
+                "##z" + z->getLitera();
 
-            if (ImGui::Button(label.c_str(), ImVec2(btnSize, btnSize))) {
-                zonaSelectata = z->getId();
-            }
+            if (ImGui::Button(label.c_str(), ImVec2(btnSize, btnSize)))
+                zonaCliclata = z->getId();
 
-            ImGui::PopStyleColor(2);
+            ImGui::PopStyleColor(3);
+            if (selectata)
+                ImGui::PopStyleVar();
+
             col++;
         }
+
+        // Produse din zona selectata
+        if (zonaCliclata >= 0) {
+            Zona* z = depozit.getZona(zonaCliclata);
+            if (z) {
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::TextColored(ImVec4(0.2f,0.7f,1.0f,1.0f),
+                    "Zona %c — %d/%d (%.0f%%)",
+                    z->getLitera(),
+                    z->getCapacitateCurenta(),
+                    z->getCapacitateMax(),
+                    z->getProcentOcupare());
+                ImGui::Spacing();
+
+                bool areProduse = false;
+                for (auto& [id, p] : depozit.getProduse()) {
+                    if (p.getZonaId() == zonaCliclata) {
+                        ImGui::BulletText("%s — stoc: %d buc | %.2f RON",
+                            p.getNume().c_str(), p.getCantitate(), p.getPret());
+                        areProduse = true;
+                    }
+                }
+                if (!areProduse)
+                    ImGui::TextDisabled("Niciun produs in aceasta zona.");
+            }
+        }
+
+        // Legenda
+        ImGui::Spacing();
+        ImGui::Separator();
+        ImGui::Text("Legenda:");
+        ImGui::SameLine(); ImGui::TextColored(ImVec4(0.4f,0.4f,0.4f,1), "[Goala]");
+        ImGui::SameLine(); ImGui::TextColored(ImVec4(0.2f,0.8f,0.2f,1), "[1-25%%]");
+        ImGui::SameLine(); ImGui::TextColored(ImVec4(0.9f,0.9f,0.1f,1), "[26-50%%]");
+        ImGui::SameLine(); ImGui::TextColored(ImVec4(0.9f,0.6f,0.1f,1), "[51-75%%]");
+        ImGui::SameLine(); ImGui::TextColored(ImVec4(0.9f,0.2f,0.2f,1), "[76-100%%]");
     }
 
     void renderTabelProduse() {
@@ -83,7 +123,7 @@ private:
             ImGuiTableFlags_Borders |
             ImGuiTableFlags_RowBg |
             ImGuiTableFlags_ScrollY,
-            ImVec2(0, 300)))
+            ImVec2(0, 250)))
         {
             ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 40);
             ImGui::TableSetupColumn("Nume", ImGuiTableColumnFlags_WidthStretch);
@@ -206,12 +246,10 @@ private:
 
     void renderAlerte() {
         if (!alertaManager.areAlerte()) return;
-
         ImGui::Spacing();
         ImGui::TextColored(ImVec4(1,0.3f,0.3f,1),
             "ALERTE ACTIVE: %d", alertaManager.getNrAlerte());
         ImGui::Separator();
-
         for (const auto& a : alertaManager.getAlerte()) {
             ImGui::TextColored(a.getCuloare(), "%s %s",
                 a.getTipString().c_str(), a.mesaj.c_str());
@@ -224,8 +262,8 @@ private:
                 Raport::getValoareTotala(depozit.getProduse()));
             ImGui::Text("Produse sub prag: %d",
                 Raport::getNrSubPrag(depozit.getProduse()));
+            ImGui::Text("Total produse: %d", depozit.getNrProduse());
             ImGui::Spacing();
-
             ImGui::Text("Top produse critice:");
             auto top = Raport::getTopCritice(depozit.getProduse());
             for (const auto& r : top) {
@@ -261,7 +299,6 @@ public:
             ImGuiWindowFlags_NoMove |
             ImGuiWindowFlags_NoBringToFrontOnFocus);
 
-        // Header
         ImGui::TextColored(ImVec4(0.2f,0.7f,1.0f,1.0f),
             "SISTEM MONITORIZARE DEPOZIT");
         ImGui::SameLine(ImGui::GetWindowWidth() - 200);
@@ -271,17 +308,14 @@ public:
         ImGui::Separator();
         ImGui::Spacing();
 
-        // Layout: stanga = zone, dreapta = produse
         float leftWidth = io.DisplaySize.x * 0.42f;
 
-        // Coloana stanga - Harta zone
         ImGui::BeginChild("##zone", ImVec2(leftWidth, -1), true);
         renderZoneGrid();
         ImGui::EndChild();
 
         ImGui::SameLine();
 
-        // Coloana dreapta - Produse si management
         ImGui::BeginChild("##produse", ImVec2(-1, -1), true);
         renderTabelProduse();
         ImGui::Spacing();
@@ -293,7 +327,6 @@ public:
         ImGui::Spacing();
         renderRapoarte();
 
-        // Mesaj status
         if (!mesajStatus.empty()) {
             ImGui::Spacing();
             ImGui::TextColored(ImVec4(0.2f,1.0f,0.2f,1.0f),
