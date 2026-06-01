@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <functional>
 #include "sqlite3.h"
 #include "../models/Produs.h"
 #include "../models/Categorie.h"
@@ -9,6 +8,17 @@
 #include "../models/Zona.h"
 #include "../models/User.h"
 #include "../data/sha256.h"
+
+// Structura pentru istoricul tranzactiilor
+struct TranzactieRecord {
+    int id;
+    int produsId;
+    std::string numeProdus;
+    std::string tip;
+    int cantitate;
+    std::string data;
+    std::string observatii;
+};
 
 class Database {
 private:
@@ -48,7 +58,6 @@ public:
                 descriere TEXT
             );
         )");
-
         executeSQL(R"(
             CREATE TABLE IF NOT EXISTS furnizori (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,7 +66,6 @@ public:
                 email TEXT
             );
         )");
-
         executeSQL(R"(
             CREATE TABLE IF NOT EXISTS zone (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,7 +74,6 @@ public:
                 capacitate_curenta INTEGER DEFAULT 0
             );
         )");
-
         executeSQL(R"(
             CREATE TABLE IF NOT EXISTS produse (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,7 +86,6 @@ public:
                 furnizor_id INTEGER DEFAULT 0
             );
         )");
-
         executeSQL(R"(
             CREATE TABLE IF NOT EXISTS tranzactii (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -90,7 +96,6 @@ public:
                 observatii TEXT
             );
         )");
-
         executeSQL(R"(
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -103,7 +108,6 @@ public:
     }
 
     void initDateImplicite() {
-        // Creeaza admin implicit daca nu exista
         sqlite3_stmt* stmt;
         sqlite3_prepare_v2(db,
             "SELECT COUNT(*) FROM users WHERE username = 'admin'",
@@ -117,11 +121,7 @@ public:
             executeSQL("INSERT INTO users (username, password_hash, rol) VALUES ('admin', '" + hash + "', 'ADMIN')");
         }
 
-
-        // Creeaza cele 16 zone daca nu exista
-        sqlite3_prepare_v2(db,
-            "SELECT COUNT(*) FROM zone",
-            -1, &stmt, nullptr);
+        sqlite3_prepare_v2(db, "SELECT COUNT(*) FROM zone", -1, &stmt, nullptr);
         sqlite3_step(stmt);
         count = sqlite3_column_int(stmt, 0);
         sqlite3_finalize(stmt);
@@ -134,54 +134,45 @@ public:
                 executeSQL(sql);
             }
         }
-        // Categorii implicite
-sqlite3_prepare_v2(db,
-    "SELECT COUNT(*) FROM categorii",
-    -1, &stmt, nullptr);
-sqlite3_step(stmt);
-count = sqlite3_column_int(stmt, 0);
-sqlite3_finalize(stmt);
 
-if (count == 0) {
-    executeSQL("INSERT INTO categorii (nume, descriere) VALUES ('Electronice', 'Produse electronice si IT')");
-    executeSQL("INSERT INTO categorii (nume, descriere) VALUES ('Alimente', 'Produse alimentare')");
-    executeSQL("INSERT INTO categorii (nume, descriere) VALUES ('Cosmetice', 'Produse cosmetice si ingrijire')");
-    executeSQL("INSERT INTO categorii (nume, descriere) VALUES ('Mobilier', 'Mobila si decoratiuni')");
-}
+        sqlite3_prepare_v2(db, "SELECT COUNT(*) FROM categorii", -1, &stmt, nullptr);
+        sqlite3_step(stmt);
+        count = sqlite3_column_int(stmt, 0);
+        sqlite3_finalize(stmt);
 
-// Furnizori impliciti
-sqlite3_prepare_v2(db,
-    "SELECT COUNT(*) FROM furnizori",
-    -1, &stmt, nullptr);
-sqlite3_step(stmt);
-count = sqlite3_column_int(stmt, 0);
-sqlite3_finalize(stmt);
+        if (count == 0) {
+            executeSQL("INSERT INTO categorii (nume, descriere) VALUES ('Electronice', 'Produse electronice si IT')");
+            executeSQL("INSERT INTO categorii (nume, descriere) VALUES ('Alimente', 'Produse alimentare')");
+            executeSQL("INSERT INTO categorii (nume, descriere) VALUES ('Cosmetice', 'Produse cosmetice si ingrijire')");
+            executeSQL("INSERT INTO categorii (nume, descriere) VALUES ('Mobilier', 'Mobila si decoratiuni')");
+        }
 
-if (count == 0) {
-    executeSQL("INSERT INTO furnizori (nume, telefon, email) VALUES ('TechSupply SRL', '0721000001', 'contact@techsupply.ro')");
-    executeSQL("INSERT INTO furnizori (nume, telefon, email) VALUES ('FoodDist SA', '0721000002', 'office@fooddist.ro')");
-    executeSQL("INSERT INTO furnizori (nume, telefon, email) VALUES ('CosmeticPro', '0721000003', 'info@cosmeticpro.ro')");
-}
+        sqlite3_prepare_v2(db, "SELECT COUNT(*) FROM furnizori", -1, &stmt, nullptr);
+        sqlite3_step(stmt);
+        count = sqlite3_column_int(stmt, 0);
+        sqlite3_finalize(stmt);
 
-// Produse implicite
-sqlite3_prepare_v2(db,
-    "SELECT COUNT(*) FROM produse",
-    -1, &stmt, nullptr);
-sqlite3_step(stmt);
-count = sqlite3_column_int(stmt, 0);
-sqlite3_finalize(stmt);
+        if (count == 0) {
+            executeSQL("INSERT INTO furnizori (nume, telefon, email) VALUES ('TechSupply SRL', '0721000001', 'contact@techsupply.ro')");
+            executeSQL("INSERT INTO furnizori (nume, telefon, email) VALUES ('FoodDist SA', '0721000002', 'office@fooddist.ro')");
+            executeSQL("INSERT INTO furnizori (nume, telefon, email) VALUES ('CosmeticPro', '0721000003', 'info@cosmeticpro.ro')");
+        }
 
-if (count == 0) {
-    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Laptop Dell', 45, 3500.00, 10, 1, 1, 1)");
-    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Mouse Wireless', 8, 120.00, 20, 1, 1, 1)");
-    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Cafea Jacobs 500g', 5, 35.00, 15, 3, 2, 2)");
-    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Sampon Pantene', 0, 22.50, 10, 5, 3, 3)");
-    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Tastatura Mecanica', 30, 450.00, 5, 2, 1, 1)");
-    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Ulei Floarea Soarelui', 120, 12.00, 30, 4, 2, 2)");
-    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Monitor 27inch', 12, 1200.00, 5, 2, 1, 1)");
-    executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Crema Nivea', 3, 18.00, 10, 6, 3, 3)");
-}
+        sqlite3_prepare_v2(db, "SELECT COUNT(*) FROM produse", -1, &stmt, nullptr);
+        sqlite3_step(stmt);
+        count = sqlite3_column_int(stmt, 0);
+        sqlite3_finalize(stmt);
 
+        if (count == 0) {
+            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Laptop Dell', 45, 3500.00, 10, 1, 1, 1)");
+            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Mouse Wireless', 8, 120.00, 20, 1, 1, 1)");
+            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Cafea Jacobs 500g', 5, 35.00, 15, 3, 2, 2)");
+            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Sampon Pantene', 0, 22.50, 10, 5, 3, 3)");
+            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Tastatura Mecanica', 30, 450.00, 5, 2, 1, 1)");
+            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Ulei Floarea Soarelui', 120, 12.00, 30, 4, 2, 2)");
+            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Monitor 27inch', 12, 1200.00, 5, 2, 1, 1)");
+            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Crema Nivea', 3, 18.00, 10, 6, 3, 3)");
+        }
     }
 
     // ===== AUTH =====
@@ -205,6 +196,62 @@ if (count == 0) {
         }
         sqlite3_finalize(stmt);
         return succes;
+    }
+
+    // ===== USERS =====
+    std::vector<User> getUsers() {
+        std::vector<User> users;
+        sqlite3_stmt* stmt;
+        sqlite3_prepare_v2(db,
+            "SELECT id, username, password_hash, rol, activ FROM users",
+            -1, &stmt, nullptr);
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            int id = sqlite3_column_int(stmt, 0);
+            std::string username = (const char*)sqlite3_column_text(stmt, 1);
+            std::string hash = (const char*)sqlite3_column_text(stmt, 2);
+            std::string rol = (const char*)sqlite3_column_text(stmt, 3);
+            bool activ = sqlite3_column_int(stmt, 4) == 1;
+            Rol r = (rol == "ADMIN") ? Rol::ADMIN : Rol::ANGAJAT;
+            User u(id, username, hash, r);
+            u.setActiv(activ);
+            users.push_back(u);
+        }
+        sqlite3_finalize(stmt);
+        return users;
+    }
+
+    void adaugaUser(const std::string& username, const std::string& parola, Rol rol) {
+        std::string hash = SHA256::hash(parola);
+        std::string rolStr = (rol == Rol::ADMIN) ? "ADMIN" : "ANGAJAT";
+        sqlite3_stmt* stmt;
+        sqlite3_prepare_v2(db,
+            "INSERT INTO users (username, password_hash, rol) VALUES (?,?,?)",
+            -1, &stmt, nullptr);
+        sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 2, hash.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_text(stmt, 3, rolStr.c_str(), -1, SQLITE_STATIC);
+        sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
+    }
+
+    void dezactiveazaUser(int id) {
+        sqlite3_stmt* stmt;
+        sqlite3_prepare_v2(db,
+            "UPDATE users SET activ = 0 WHERE id = ?",
+            -1, &stmt, nullptr);
+        sqlite3_bind_int(stmt, 1, id);
+        sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
+    }
+
+    void activeazaUser(int id) {
+        sqlite3_stmt* stmt;
+        sqlite3_prepare_v2(db,
+            "UPDATE users SET activ = 1 WHERE id = ?",
+            -1, &stmt, nullptr);
+        sqlite3_bind_int(stmt, 1, id);
+        sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
     }
 
     // ===== PRODUSE =====
@@ -257,6 +304,20 @@ if (count == 0) {
         sqlite3_finalize(stmt);
     }
 
+    void updateProdus(int id, const std::string& nume, double pret, int pragAlerta, int zonaId) {
+        sqlite3_stmt* stmt;
+        sqlite3_prepare_v2(db,
+            "UPDATE produse SET nume=?, pret=?, prag_alerta=?, zona_id=? WHERE id=?",
+            -1, &stmt, nullptr);
+        sqlite3_bind_text(stmt, 1, nume.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_double(stmt, 2, pret);
+        sqlite3_bind_int(stmt, 3, pragAlerta);
+        sqlite3_bind_int(stmt, 4, zonaId);
+        sqlite3_bind_int(stmt, 5, id);
+        sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
+    }
+
     void eliminaProdus(int id) {
         sqlite3_stmt* stmt;
         sqlite3_prepare_v2(db, "DELETE FROM produse WHERE id = ?", -1, &stmt, nullptr);
@@ -295,15 +356,16 @@ if (count == 0) {
         sqlite3_step(stmt);
         sqlite3_finalize(stmt);
     }
+
     void recalculeazaZone() {
         executeSQL("UPDATE zone SET capacitate_curenta = 0");
         executeSQL(R"(
-        UPDATE zone SET capacitate_curenta = (
-            SELECT COALESCE(SUM(cantitate), 0)
-            FROM produse
-            WHERE produse.zona_id = zone.id
-        )
-    )");
+            UPDATE zone SET capacitate_curenta = (
+                SELECT COALESCE(SUM(cantitate), 0)
+                FROM produse
+                WHERE produse.zona_id = zone.id
+            )
+        )");
     }
 
     // ===== CATEGORII =====
@@ -374,5 +436,31 @@ if (count == 0) {
         sqlite3_bind_text(stmt, 4, observatii.c_str(), -1, SQLITE_STATIC);
         sqlite3_step(stmt);
         sqlite3_finalize(stmt);
+    }
+
+    std::vector<TranzactieRecord> getTranzactii(int limit = 50) {
+        std::vector<TranzactieRecord> rezultat;
+        sqlite3_stmt* stmt;
+        sqlite3_prepare_v2(db,
+            R"(SELECT t.id, t.produs_id, COALESCE(p.nume, 'Sters'),
+               t.tip, t.cantitate, t.data, t.observatii
+               FROM tranzactii t
+               LEFT JOIN produse p ON t.produs_id = p.id
+               ORDER BY t.id DESC LIMIT ?)",
+            -1, &stmt, nullptr);
+        sqlite3_bind_int(stmt, 1, limit);
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            TranzactieRecord r;
+            r.id = sqlite3_column_int(stmt, 0);
+            r.produsId = sqlite3_column_int(stmt, 1);
+            r.numeProdus = (const char*)sqlite3_column_text(stmt, 2);
+            r.tip = (const char*)sqlite3_column_text(stmt, 3);
+            r.cantitate = sqlite3_column_int(stmt, 4);
+            r.data = sqlite3_column_text(stmt, 5) ? (const char*)sqlite3_column_text(stmt, 5) : "";
+            r.observatii = sqlite3_column_text(stmt, 6) ? (const char*)sqlite3_column_text(stmt, 6) : "";
+            rezultat.push_back(r);
+        }
+        sqlite3_finalize(stmt);
+        return rezultat;
     }
 };

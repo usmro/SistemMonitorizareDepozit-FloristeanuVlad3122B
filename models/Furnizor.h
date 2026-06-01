@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <vector>
+#include <algorithm>
 
 class Furnizor {
 private:
@@ -25,11 +26,13 @@ public:
     void setTelefon(std::string t) { telefon = t; }
     void setEmail(std::string e) { email = e; }
 
-    void adaugaProdus(int produsId) { produseIds.push_back(produsId); }
+    void adaugaProdus(int produsId) {
+        produseIds.push_back(produsId);
+    }
+
     void eliminaProdus(int produsId) {
-        produseIds.erase(
-            std::remove(produseIds.begin(), produseIds.end(), produsId),
-            produseIds.end()
-        );
+        auto it = std::find(produseIds.begin(), produseIds.end(), produsId);
+        if (it != produseIds.end())
+            produseIds.erase(it);
     }
 };

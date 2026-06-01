@@ -46,6 +46,20 @@ public:
             return ImVec4(0.9f, 0.2f, 0.2f, 1.0f);   // Rosu
     }
 
+    ImVec4 getCuloareText() const {
+        float procent = getProcentOcupare();
+        if (procent == 0.0f)
+            return ImVec4(0.8f, 0.8f, 0.8f, 1.0f);   // Gri deschis
+        else if (procent <= 25.0f)
+            return ImVec4(0.0f, 0.15f, 0.0f, 1.0f);  // Verde inchis
+        else if (procent <= 50.0f)
+            return ImVec4(0.15f, 0.10f, 0.0f, 1.0f); // Maro inchis pe galben
+        else if (procent <= 75.0f)
+            return ImVec4(0.15f, 0.08f, 0.0f, 1.0f); // Maro pe portocaliu
+        else
+            return ImVec4(1.0f, 0.9f, 0.9f, 1.0f);   // Alb pe rosu
+    }
+
     bool eGoala() const { return capacitateCurenta == 0; }
     bool eePlina() const { return capacitateCurenta >= capacitateMax; }
 };
