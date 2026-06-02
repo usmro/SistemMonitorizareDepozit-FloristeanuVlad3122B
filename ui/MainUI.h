@@ -144,7 +144,6 @@ private:
             col++;
         }
 
-        // Detalii zona selectata
         if (zonaCliclata >= 0) {
             Zona* z = depozit.getZona(zonaCliclata);
             if (z) {
@@ -163,12 +162,11 @@ private:
                 ImGui::InputText("##cz", cautareZona, sizeof(cautareZona));
                 ImGui::Spacing();
 
-                // Child scrollabil pentru produse din zona
                 float altimeDisponibila = ImGui::GetContentRegionAvail().y - 65.0f;
                 ImGui::BeginChild("##produse_zona",
-            ImVec2(-1, altimeDisponibila > 80 ? altimeDisponibila : 80),
-            true,
-                ImGuiWindowFlags_HorizontalScrollbar);
+                    ImVec2(-1, altimeDisponibila > 80 ? altimeDisponibila : 80),
+                    true,
+                    ImGuiWindowFlags_HorizontalScrollbar);
 
                 bool areProduse = false;
                 std::string filtruZona(cautareZona);
@@ -184,12 +182,10 @@ private:
                 }
                 if (!areProduse)
                     ImGui::TextDisabled("Niciun produs in aceasta zona.");
-
                 ImGui::EndChild();
             }
         }
 
-        // Legenda
         ImGui::Spacing();
         ImGui::Separator();
         ImGui::Text("Legenda:");
@@ -332,11 +328,14 @@ private:
             ImGui::EndTable();
         }
 
-        // Paginare
+        // ===== PAGINARE FIXED =====
         ImGui::Spacing();
-        if (paginaCurenta <= 0) ImGui::BeginDisabled();
-        if (ImGui::Button("< Inapoi##pag", ImVec2(80, 25))) paginaCurenta--;
-        if (paginaCurenta <= 0) ImGui::EndDisabled();
+
+        bool primaP = (paginaCurenta <= 0);
+        if (primaP) ImGui::BeginDisabled();
+        if (ImGui::Button("< Inapoi##pag", ImVec2(80, 25)))
+            paginaCurenta--;
+        if (primaP) ImGui::EndDisabled();
 
         ImGui::SameLine();
         ImGui::TextColored(ImVec4(0.2f,0.7f,1.0f,1.0f),
@@ -345,9 +344,11 @@ private:
             startIdx + 1, endIdx, totalProduseFiltrate);
         ImGui::SameLine();
 
-        if (paginaCurenta >= totalPagini - 1) ImGui::BeginDisabled();
-        if (ImGui::Button("Inainte >##pag", ImVec2(80, 25))) paginaCurenta++;
-        if (paginaCurenta >= totalPagini - 1) ImGui::EndDisabled();
+        bool ultimaP = (paginaCurenta >= totalPagini - 1);
+        if (ultimaP) ImGui::BeginDisabled();
+        if (ImGui::Button("Inainte >##pag", ImVec2(80, 25)))
+            paginaCurenta++;
+        if (ultimaP) ImGui::EndDisabled();
 
         ImGui::SameLine();
         ImGui::SetNextItemWidth(60);
@@ -450,11 +451,9 @@ private:
                 if (zA) {
                     ImGui::TextColored(ImVec4(0.2f,0.8f,0.2f,1),
                         "Zona disponibila: Zona %c (%.0f%% ocupata, %d spatiu liber)",
-                        zA->getLitera(),
-                        zA->getProcentOcupare(),
+                        zA->getLitera(), zA->getProcentOcupare(),
                         depozit.getSpatiu(zonaAlternativaAdaugaId));
                     ImGui::Spacing();
-
                     if (ImGui::Button("Adauga in aceasta zona", ImVec2(220, 30))) {
                         try {
                             Produs p(0, numeProdusPending, cantPending,
@@ -622,11 +621,9 @@ private:
                 if (zA) {
                     ImGui::TextColored(ImVec4(0.2f,0.8f,0.2f,1),
                         "Zona disponibila: Zona %c (%.0f%% ocupata, %d spatiu liber)",
-                        zA->getLitera(),
-                        zA->getProcentOcupare(),
+                        zA->getLitera(), zA->getProcentOcupare(),
                         depozit.getSpatiu(zonaAlternativaId));
                     ImGui::Spacing();
-
                     if (ImGui::Button("Muta produsul in aceasta zona", ImVec2(250, 30))) {
                         try {
                             depozit.mutaProdusInZona(produsDeMusat, zonaAlternativaId);
@@ -654,8 +651,6 @@ private:
         ImGui::TextColored(ImVec4(1,0.3f,0.3f,1),
             "ALERTE ACTIVE: %d", alertaManager.getNrAlerte());
         ImGui::Separator();
-
-        // Child scrollabil pentru alerte
         ImGui::BeginChild("##alerte_list", ImVec2(-1, 90), false);
         for (const auto& a : alertaManager.getAlerte()) {
             ImGui::TextColored(a.getCuloare(), "%s %s",
