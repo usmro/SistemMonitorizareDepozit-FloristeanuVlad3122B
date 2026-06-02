@@ -81,10 +81,10 @@ Prima rulare descarca automat ImGui, GLFW si SQLite3 prin FetchContent.
 ## Date implicite
 
 | Camp | Valoare |
-|---|---|
+|---|--|
 | Username | admin |
 | Parola | admin123 |
-| Produse pre-generate | 56 |
+| Produse pre-generate | 1500 (generate procedural) |
 | Zone | 16 (A-P), capacitate 1000 fiecare |
 | Zona A | 100% plina pentru demo sugestie |
 

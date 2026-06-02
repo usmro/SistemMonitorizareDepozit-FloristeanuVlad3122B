@@ -322,7 +322,7 @@ Parolele sunt stocate exclusiv ca hash SHA-256 de 64 caractere hex, niciodata in
 
 - Username: admin
 - Parola: admin123
-- 56 produse pre-generate in 13 zone
+- 1500 produse individuale generate procedural din combinatii brand x model x varianta
 - Zona A la 100% plina pentru demo sugestie zona alternativa
 
 ### Dependente descarcate automat prin FetchContent
