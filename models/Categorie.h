@@ -1,21 +1,30 @@
 #pragma once
 #include <string>
+#include "EntitateDepozit.h"
 
-class Categorie {
+class Categorie : public EntitateDepozit {
 private:
-    int id;
-    std::string nume;
     std::string descriere;
 
 public:
-    Categorie() : id(0) {}
+    Categorie() : EntitateDepozit(0, "") {}
     Categorie(int id, std::string nume, std::string descriere = "")
-        : id(id), nume(nume), descriere(descriere) {}
+        : EntitateDepozit(id, nume), descriere(descriere) {}
 
-    int getId() const { return id; }
-    std::string getNume() const { return nume; }
     std::string getDescriere() const { return descriere; }
-
-    void setNume(std::string n) { nume = n; }
     void setDescriere(std::string d) { descriere = d; }
+
+    // Implementare functii virtuale pure
+    void afisare() const override {
+        std::cout << getTip() << " [" << id << "]: " << nume
+                  << " | " << descriere << std::endl;
+    }
+
+    std::string getTip() const override {
+        return "Categorie";
+    }
+
+    std::string getInfo() const override {
+        return nume + " - " + descriere;
+    }
 };

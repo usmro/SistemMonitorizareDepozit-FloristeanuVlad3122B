@@ -1,39 +1,63 @@
 # Sistem de Monitorizare a Stocurilor unui Depozit
 
-## 1. Analiza Temei
-Proiectul are ca scop dezvoltarea unui sistem informatic pentru gestionarea stocurilor dintr-un depozit.
-Sistemul permite urmărirea precisă a produselor, actualizarea cantităților la intrarea/ieșirea din gestiune și generarea de alerte atunci când stocul scade sub un anumit prag critic.
+## Informatii Generale
+- **Autor:** [Numele tau]
+- **Materie:** Programare Orientata pe Obiecte
+- **An universitar:** 2025-2026
+- **Branch Git:** develop
 
-**Arhitectura de bază:**
-* **Modele de date:** `Produs` (reprezintă entitatea de bază).
-* **Servicii/Gestiune:** `Depozit` (gestionează colecția de produse folosind un `std::unordered_map` pentru căutări rapide O(1) bazate pe ID).
-* **Tratarea Erorilor:** Excepții customizate pentru validări (ex: `ProdusExistentException`, `ProdusInexistentException`, `StocInsuficientException`).
+---
 
-## 2. Diagrama UML Simplificată
+## 1. Descrierea Proiectului
 
-```mermaid
-classDiagram
-    class Produs {
-        - int ID
-        - string nume
-        - int cantitate
-        - double pret
-        - int pragAlerta
-        + Produs(ID, nume, cantitate, pret, pragAlerta)
-        + operator+=(cantitate) Produs&
-        + operator-=(cantitate) Produs&
-        + getID() int
-        + getCantitate() int
-        + getPragAlerta() int
-        + afisare() void
-    }
+Proiectul reprezinta un sistem informatic complet pentru monitorizarea
+stocurilor unui depozit de tip retail (inspirat din modelul Carrefour/Lidl).
+Sistemul permite urmarirea produselor pe zone fizice, gestionarea
+cantitarilor la intrare/iesire, generarea de alerte automate si
+administrarea utilizatorilor cu roluri diferite.
 
-    class Depozit {
-        - unordered_map~int, Produs~ stocuri
-        + adaugaProdus(Produs p) void
-        + eliminaProdus(int id) void
-        + actualizeazaStoc(int id, int cantitate, bool esteIntrare) void
-        + genereazaRaportAlerte() void
-    }
+### Functionalitati principale:
+- Harta vizuala a depozitului cu 16 zone (A-P) colorate dupa ocupare
+- Gestionare produse cu alerte de stoc scazut
+- Sistem de autentificare cu parole criptate SHA-256
+- Roluri Admin si Angajat cu permisiuni diferite
+- Istoric complet al tranzactiilor
+- Sugestie automata de zona alternativa cand o zona e plina
+- Paginare pentru seturi mari de date
+- Sortare si cautare in toate tabelele
 
-    Depozit "1" *-- "0..*" Produs : contine >
+---
+
+## 2. Arhitectura Proiectului
+
+# Sistem de Monitorizare a Stocurilor unui Depozit
+
+## Informatii Generale
+- **Autor:** [Numele tau]
+- **Materie:** Programare Orientata pe Obiecte
+- **An universitar:** 2025-2026
+- **Branch Git:** develop
+
+---
+
+## 1. Descrierea Proiectului
+
+Proiectul reprezinta un sistem informatic complet pentru monitorizarea
+stocurilor unui depozit de tip retail (inspirat din modelul Carrefour/Lidl).
+Sistemul permite urmarirea produselor pe zone fizice, gestionarea
+cantitarilor la intrare/iesire, generarea de alerte automate si
+administrarea utilizatorilor cu roluri diferite.
+
+### Functionalitati principale:
+- Harta vizuala a depozitului cu 16 zone (A-P) colorate dupa ocupare
+- Gestionare produse cu alerte de stoc scazut
+- Sistem de autentificare cu parole criptate SHA-256
+- Roluri Admin si Angajat cu permisiuni diferite
+- Istoric complet al tranzactiilor
+- Sugestie automata de zona alternativa cand o zona e plina
+- Paginare pentru seturi mari de date
+- Sortare si cautare in toate tabelele
+
+---
+
+

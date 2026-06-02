@@ -2,27 +2,24 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include "EntitateDepozit.h"
 
-class Furnizor {
+class Furnizor : public EntitateDepozit {
 private:
-    int id;
-    std::string nume;
     std::string telefon;
     std::string email;
     std::vector<int> produseIds;
 
 public:
-    Furnizor() : id(0) {}
-    Furnizor(int id, std::string nume, std::string telefon = "", std::string email = "")
-        : id(id), nume(nume), telefon(telefon), email(email) {}
+    Furnizor() : EntitateDepozit(0, "") {}
+    Furnizor(int id, std::string nume,
+             std::string telefon = "", std::string email = "")
+        : EntitateDepozit(id, nume), telefon(telefon), email(email) {}
 
-    int getId() const { return id; }
-    std::string getNume() const { return nume; }
     std::string getTelefon() const { return telefon; }
     std::string getEmail() const { return email; }
     std::vector<int> getProduseIds() const { return produseIds; }
 
-    void setNume(std::string n) { nume = n; }
     void setTelefon(std::string t) { telefon = t; }
     void setEmail(std::string e) { email = e; }
 
@@ -34,5 +31,20 @@ public:
         auto it = std::find(produseIds.begin(), produseIds.end(), produsId);
         if (it != produseIds.end())
             produseIds.erase(it);
+    }
+
+    // Implementare functii virtuale pure
+    void afisare() const override {
+        std::cout << getTip() << " [" << id << "]: " << nume
+                  << " | Tel: " << telefon
+                  << " | Email: " << email << std::endl;
+    }
+
+    std::string getTip() const override {
+        return "Furnizor";
+    }
+
+    std::string getInfo() const override {
+        return nume + " (tel: " + telefon + ")";
     }
 };

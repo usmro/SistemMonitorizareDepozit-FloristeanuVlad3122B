@@ -55,6 +55,7 @@ add_executable(ProiectPOO
         ui/LoginUI.h
         ui/MainUI.h
         tests/TestRunner.h
+        models/EntitateDepozit.h
 )
 
 target_include_directories(ProiectPOO PRIVATE
