@@ -227,7 +227,7 @@ Clasa statica cu metode de raportare. Top 5 produse critice sortate dupa cantita
 
 ### Database
 
-Wrapper complet peste SQLite3 cu CRUD pentru toate entitatile. Initializeaza date de demo la prima pornire. Indexuri SQLite pentru performanta ridicata.
+Wrapper complet peste SQLite3 cu CRUD pentru toate entitatile. Genereaza ~1500 produse individuale procedural la prima pornire. Indexuri SQLite pentru performanta ridicata.
 
 ### SHA256
 
@@ -269,9 +269,9 @@ Autentificare cu username si parola. Parola criptata SHA-256. Mesaj de eroare la
 
 ### Tab Dashboard
 
-Stanga (42%): Harta depozit 4x4 cu 16 zone colorate. Click pe zona afiseaza produsele din ea cu scrollbar. Cautare in zona selectata. Legenda culori.
+Stanga (42%): Harta depozit 4x4 cu 16 zone colorate. Click pe zona afiseaza produsele din ea cu scrollbar si cautare. Legenda culori.
 
-Dreapta (58%): Tabel produse cu sortare pe coloane, cautare, paginare. Formular adaugare produs doar Admin. Gestiune stoc cu observatii. Alerte active cu scrollbar. Rapoarte colapsabile.
+Dreapta (58%): Tabel produse cu sortare pe coloane, cautare, paginare (10/25/50/100 per pagina). Formular adaugare produs doar Admin. Gestiune stoc cu observatii si afisare spatiu disponibil. Popup sugestie zona alternativa cand zona e plina. Alerte active cu scrollbar. Rapoarte colapsabile.
 
 ### Tab Tranzactii
 
@@ -279,7 +279,7 @@ Istoric complet sortabil pe toate coloanele. INTRARE (verde), IESIRE (rosu), MUT
 
 ### Tab Admin (doar Admin)
 
-Creare si dezactivare conturi angajati. Vizualizare hash parole. Gestionare categorii si furnizori cu cautare.
+Creare si dezactivare conturi angajati. Vizualizare hash parole. Gestionare categorii si furnizori cu cautare si sortare.
 
 ---
 
@@ -298,31 +298,88 @@ Parolele sunt stocate exclusiv ca hash SHA-256 de 64 caractere hex, niciodata in
 - Git in PATH pentru FetchContent
 - Conexiune internet la primul build
 
-### Build Windows
+### Windows - Pas cu Pas
+
+#### Pasul 1 - Instaleaza MinGW
+
+Descarca de la https://winlibs.com versiunea GCC 16.x Win64 ZIP.
+Extrage arhiva si muta folderul la C:\mingw64.
+
+Adauga MinGW in PATH (PowerShell ca Administrator):
+
+    [System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\mingw64\bin", "Machine")
+
+Verifica instalarea (inchide si redeschide PowerShell):
+
+    gcc --version
+
+Rezultat asteptat: gcc.exe (MinGW-W64) 16.1.0
+
+#### Pasul 2 - Instaleaza Git
+
+Descarca de la https://git-scm.com si instaleaza cu optiunile default.
+
+Adauga Git in PATH (PowerShell ca Administrator):
+
+    [System.Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files\Git\cmd", "Machine")
+
+Verifica instalarea (inchide si redeschide PowerShell):
+
+    git --version
+
+Rezultat asteptat: git version 2.45.x.windows.x
+
+#### Pasul 3 - Cloneaza Repository-ul
+
+In PowerShell:
 
     git clone https://github.com/FloristeanuVlad/SistemMonitorizareDepozit
     cd SistemMonitorizareDepozit
-    mkdir cmake-build-debug
-    cd cmake-build-debug
-    cmake -G "MinGW Makefiles" ..
-    cmake --build .
-    ProiectPOO.exe
 
-### Build Linux
+#### Pasul 4 - Deschide in CLion
+
+1. Deschide CLion
+2. File → Open → navigheaza la folderul clonat → selecteaza CMakeLists.txt → OK
+3. La intrebarea Load CMake Project click Yes
+
+#### Pasul 5 - Configureaza Toolchain
+
+1. File → Settings → Build, Execution, Deployment → Toolchains
+2. Click + → MinGW
+3. Toolset: C:\mingw64
+4. Asteapta sa detecteze gcc.exe si g++.exe (bifa verde)
+5. Muta MinGW primul in lista cu sageata sus
+6. Apply → OK
+
+#### Pasul 6 - Ruleaza
+
+Apasa butonul Run (sageata verde) din bara de sus.
+Prima rulare descarca automat ImGui, GLFW si SQLite3 (~5 minute).
+La urmatoarele rulari porneste instant.
+
+### Linux - Ubuntu/Debian
+
+Instaleaza dependentele sistem:
+
+    sudo apt install cmake gcc g++ libgl1-mesa-dev xorg-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev -y
+
+Cloneaza si ruleaza:
 
     git clone https://github.com/FloristeanuVlad/SistemMonitorizareDepozit
     cd SistemMonitorizareDepozit
-    mkdir cmake-build-debug
-    cd cmake-build-debug
+    mkdir cmake-build-debug && cd cmake-build-debug
     cmake ..
     cmake --build .
     ./ProiectPOO
+
+Prima rulare descarca automat ImGui, GLFW si SQLite3 prin FetchContent.
 
 ### Date implicite la prima pornire
 
 - Username: admin
 - Parola: admin123
-- 1500 produse individuale generate procedural din combinatii brand x model x varianta
+- ~1500 produse individuale generate procedural din combinatii brand x model x varianta
+- 16 zone (A-P) cu capacitate 1000 fiecare
 - Zona A la 100% plina pentru demo sugestie zona alternativa
 
 ### Dependente descarcate automat prin FetchContent
@@ -362,6 +419,7 @@ Branch: develop
 | feat: core classes | Produs, Depozit, Zona, Furnizor, Tranzactie, Database, UI |
 | feat: zone coloring, test data | Culori zone, date demo realiste, alerte |
 | feat: UI styling | Tema Dark Blue, tab-uri, roluri Admin/Angajat, logout |
-| feat: unit tests | TestRunner cu 53 teste, toate trecute |
+| feat: unit tests | TestRunner cu 84 teste, toate trecute |
 | feat: inheritance + polymorphism | EntitateDepozit abstracta, mostenire, polimorfism |
 | feat: pagination, indexes, zone capacity | Paginare, indexuri SQLite, capacitate zona 1000 |
+| docs: Documentatie.md si README.md complete | Documentatie tehnica si instructiuni rulare |
