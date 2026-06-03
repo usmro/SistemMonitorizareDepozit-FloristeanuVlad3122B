@@ -713,7 +713,7 @@ private:
             ImGui::TableSetupColumn("Produs", ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableSetupColumn("Tip", ImGuiTableColumnFlags_WidthFixed, 80);
             ImGui::TableSetupColumn("Cantitate", ImGuiTableColumnFlags_WidthFixed, 80);
-            ImGui::TableSetupColumn("Data", ImGuiTableColumnFlags_WidthFixed, 140);
+            ImGui::TableSetupColumn("Data", ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableSetupColumn("Observatii", ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableHeadersRow();
 
