@@ -34,6 +34,23 @@ private:
         }
     }
 
+    void inserareProdus(const std::string& nume, int cantitate, double pret,
+                        int pragAlerta, int zonaId, int catId, int furnId) {
+        sqlite3_stmt* stmt;
+        sqlite3_prepare_v2(db,
+            "INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES (?,?,?,?,?,?,?)",
+            -1, &stmt, nullptr);
+        sqlite3_bind_text(stmt, 1, nume.c_str(), -1, SQLITE_STATIC);
+        sqlite3_bind_int(stmt, 2, cantitate);
+        sqlite3_bind_double(stmt, 3, pret);
+        sqlite3_bind_int(stmt, 4, pragAlerta);
+        sqlite3_bind_int(stmt, 5, zonaId);
+        sqlite3_bind_int(stmt, 6, catId);
+        sqlite3_bind_int(stmt, 7, furnId);
+        sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
+    }
+
 public:
     Database(const std::string& path = "depozit.db") : db(nullptr), dbPath(path) {}
 
@@ -147,105 +164,328 @@ public:
         count = sqlite3_column_int(stmt, 0);
         sqlite3_finalize(stmt);
         if (count == 0) {
-
-            // ===== ZONA A - 100% PLINA =====
-            // Total: 1000 unitati - demonstreaza sugestia de zona alternativa
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Laptop Dell Inspiron 15', 200, 3800.00, 20, 1, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Laptop Lenovo ThinkPad E15', 150, 4200.00, 15, 1, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Laptop HP EliteBook 840', 150, 5500.00, 10, 1, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Laptop Asus VivoBook 15', 200, 3200.00, 25, 1, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Laptop MacBook Air M2', 100, 7500.00, 10, 1, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Laptop Acer Aspire 5', 200, 2900.00, 20, 1, 1, 1)");
-
-            // ===== ZONA B - ~80% (Rosu) =====
-            // Total: 800 unitati
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Monitor Samsung 27 inch 4K', 120, 1800.00, 10, 2, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Monitor LG UltraWide 34', 80, 2400.00, 8, 2, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Monitor Asus ProArt 32', 100, 3200.00, 8, 2, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Tastatura Mecanica Corsair K70', 150, 650.00, 20, 2, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Mouse Logitech MX Master 3', 200, 420.00, 30, 2, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Webcam Logitech C920 HD', 150, 380.00, 25, 2, 1, 1)");
-
-            // ===== ZONA C - ~60% (Portocaliu) =====
-            // Total: 600 unitati
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Telefon Samsung Galaxy S24', 100, 4500.00, 10, 3, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Telefon iPhone 15 Pro', 80, 7200.00, 8, 3, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Telefon Xiaomi Redmi Note 13', 150, 1200.00, 20, 3, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Tableta Samsung Galaxy Tab S9', 70, 3200.00, 8, 3, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Smartwatch Samsung Galaxy Watch 6', 100, 1400.00, 10, 3, 1, 1)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Casti Sony WH-1000XM5', 100, 1600.00, 15, 3, 1, 1)");
-
-            // ===== ZONA D - ~50% (Portocaliu) =====
-            // Total: 500 unitati
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Ulei Floarea Soarelui Bunica 1L', 200, 12.50, 50, 4, 2, 2)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Zahar Alb Cristal 1kg', 150, 7.00, 60, 4, 2, 2)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Faina Alba Dobrogea 1kg', 150, 6.50, 60, 4, 2, 2)");
-
-            // ===== ZONA E - ~40% (Galben) =====
-            // Total: 400 unitati
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Cafea Jacobs Kronung 500g', 5, 42.00, 20, 5, 2, 2)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Cafea Lavazza Qualita Oro 1kg', 50, 85.00, 15, 5, 2, 2)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Orez Basmati Uncle Bens 1kg', 100, 18.00, 30, 5, 2, 2)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Paste Fainoase Barilla 500g', 100, 8.50, 40, 5, 2, 2)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Ulei Masline Bertolli Extra Virgin 750ml', 100, 48.00, 20, 5, 2, 2)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Miere Albine Naturala 500g', 45, 35.00, 10, 5, 2, 2)");
-
-            // ===== ZONA F - ~35% (Galben) =====
-            // Total: 350 unitati
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Sampon Pantene Pro-V 400ml', 0, 28.00, 15, 6, 3, 3)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Balsam Pantene Repair 200ml', 8, 24.00, 15, 6, 3, 3)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Crema Hidratanta Nivea Soft 200ml', 3, 22.00, 10, 6, 3, 3)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Gel Dus Dove Deep Moisture 250ml', 150, 18.00, 25, 6, 3, 3)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Deodorant Rexona Men 150ml', 100, 19.50, 20, 6, 3, 3)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Pasta Dinti Colgate Total 75ml', 89, 14.00, 20, 6, 3, 3)");
-
-            // ===== ZONA G - ~25% (Verde) =====
-            // Total: 250 unitati
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Parfum Hugo Boss Bottled 100ml', 50, 380.00, 5, 7, 3, 3)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Parfum Chanel Chance 50ml', 30, 520.00, 5, 7, 3, 3)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Ruj L Oreal Color Riche', 80, 42.00, 15, 7, 3, 3)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Fond de Ten Maybelline Fit Me', 90, 68.00, 20, 7, 3, 3)");
-
-            // ===== ZONA H - ~20% (Verde) =====
-            // Total: 200 unitati
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Scaun Gaming DXRacer Formula', 40, 1450.00, 5, 8, 4, 4)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Birou Reglabil Standing Desk', 30, 2800.00, 3, 8, 4, 4)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Lampa Birou LED Philips Hue', 60, 250.00, 8, 8, 4, 4)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Raft Depozitare IKEA Kallax', 70, 380.00, 8, 8, 4, 4)");
-
-            // ===== ZONA I - ~15% (Verde) =====
-            // Total: 150 unitati
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Canapea 3 Locuri Ektorp', 20, 4200.00, 2, 9, 4, 4)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Masa Dining Extensa 120cm', 30, 2100.00, 3, 9, 4, 4)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Set 4 Scaune Dining Stefan', 50, 1200.00, 5, 9, 4, 4)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Pat Matrimonial 160x200', 30, 1800.00, 3, 9, 4, 4)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Saltea Memory Foam 160x200', 20, 1400.00, 2, 9, 4, 4)");
-
-            // ===== ZONA J - ~10% (Verde) =====
-            // Total: 100 unitati
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Router WiFi 6 Asus RT-AX88U', 30, 850.00, 5, 10, 5, 5)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Switch Managed 8 Porturi TP-Link', 40, 420.00, 8, 10, 5, 5)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('UPS APC 650VA', 30, 380.00, 5, 10, 5, 5)");
-
-            // ===== ZONA K - ~8% (Verde) =====
-            // Total: 80 unitati
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('SSD Samsung 970 EVO 1TB', 8, 520.00, 5, 11, 5, 5)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('SSD Kingston NV2 2TB', 32, 380.00, 8, 11, 5, 5)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('HDD Seagate Barracuda 4TB', 40, 320.00, 8, 11, 5, 5)");
-
-            // ===== ZONA L - ~5% (Verde) =====
-            // Total: 50 unitati
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('RAM Corsair Vengeance DDR5 32GB', 20, 420.00, 5, 12, 5, 5)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('RAM Kingston Fury Beast 16GB', 30, 220.00, 5, 12, 5, 5)");
-
-            // ===== ZONA M - ~3% (Verde) =====
-            // Total: 30 unitati
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Placa Video RTX 4070 Super', 10, 3800.00, 2, 13, 5, 5)");
-            executeSQL("INSERT INTO produse (nume, cantitate, pret, prag_alerta, zona_id, categorie_id, furnizor_id) VALUES ('Placa Video RX 7800 XT', 20, 2800.00, 3, 13, 5, 5)");
-
-            // ===== ZONA N, O, P - GOALE =====
-            // Rezervate - demonstreaza zonele goale (gri)
+            generateazaProduse();
         }
+    }
+
+    void generateazaProduse() {
+        executeSQL("BEGIN TRANSACTION;");
+
+        // ===== DEFINITII PRODUSE =====
+
+        // Laptopuri - brand x model x ram
+        std::vector<std::string> brandLaptop = {"Dell", "Lenovo", "HP", "Asus", "Acer", "MSI", "Apple"};
+        std::vector<std::string> modelLaptop = {"Inspiron", "ThinkPad", "EliteBook", "VivoBook", "Aspire", "Stealth", "MacBook Air"};
+        std::vector<std::string> ramLaptop = {"8GB", "16GB", "32GB"};
+        std::vector<double> pretLaptop = {2800, 3500, 4200, 5500, 7200};
+        int zonaLaptop = 1; // Zona A - 100%
+        for (int b = 0; b < (int)brandLaptop.size(); b++) {
+            for (int m = 0; m < (int)modelLaptop.size(); m++) {
+                for (int r = 0; r < (int)ramLaptop.size(); r++) {
+                    std::string nume = brandLaptop[b] + " " + modelLaptop[m] + " " + ramLaptop[r];
+                    double pret = pretLaptop[(b + m) % pretLaptop.size()];
+                    int cant = 2 + (b + m + r) % 4;
+                    inserareProdus(nume, cant, pret, 3, zonaLaptop, 1, 1);
+                }
+            }
+        }
+
+        // Monitoare - brand x diagonala x rezolutie
+        std::vector<std::string> brandMonitor = {"Samsung", "LG", "Asus", "Dell", "Philips", "AOC"};
+        std::vector<std::string> diagMonitor = {"24 inch", "27 inch", "32 inch", "34 inch"};
+        std::vector<std::string> rezMonitor = {"Full HD", "4K", "QHD"};
+        std::vector<double> pretMonitor = {800, 1200, 1800, 2400, 3200};
+        int zonaMonitor = 2; // Zona B - 80%
+        for (int b = 0; b < (int)brandMonitor.size(); b++) {
+            for (int d = 0; d < (int)diagMonitor.size(); d++) {
+                for (int r = 0; r < (int)rezMonitor.size(); r++) {
+                    std::string nume = "Monitor " + brandMonitor[b] + " " + diagMonitor[d] + " " + rezMonitor[r];
+                    double pret = pretMonitor[(b + d + r) % pretMonitor.size()];
+                    int cant = 3 + (b + d) % 5;
+                    inserareProdus(nume, cant, pret, 3, zonaMonitor, 1, 1);
+                }
+            }
+        }
+
+        // Telefoane - brand x model x stocare
+        std::vector<std::string> brandTelefon = {"Samsung", "Apple", "Xiaomi", "OnePlus", "Huawei", "Google"};
+        std::vector<std::string> modelTelefon = {"Galaxy S24", "iPhone 15", "Redmi Note 13", "12 Pro", "P60 Pro", "Pixel 8"};
+        std::vector<std::string> stocareTelefon = {"128GB", "256GB", "512GB"};
+        std::vector<double> pretTelefon = {1200, 2500, 4500, 6500, 8000};
+        int zonaTelefon = 3; // Zona C - 60%
+        for (int b = 0; b < (int)brandTelefon.size(); b++) {
+            for (int s = 0; s < (int)stocareTelefon.size(); s++) {
+                std::string nume = brandTelefon[b] + " " + modelTelefon[b] + " " + stocareTelefon[s];
+                double pret = pretTelefon[(b + s) % pretTelefon.size()];
+                int cant = 5 + (b + s) % 8;
+                inserareProdus(nume, cant, pret, 5, zonaTelefon, 1, 1);
+            }
+        }
+
+        // Tablete - brand x model x stocare
+        std::vector<std::string> brandTablete = {"Samsung", "Apple", "Lenovo", "Huawei", "Microsoft"};
+        std::vector<std::string> modelTablete = {"Galaxy Tab S9", "iPad Pro", "Tab P12", "MatePad Pro", "Surface Pro"};
+        std::vector<std::string> stocareTablete = {"64GB", "128GB", "256GB"};
+        std::vector<double> pretTablete = {1500, 2500, 3500, 4500};
+        for (int b = 0; b < (int)brandTablete.size(); b++) {
+            for (int s = 0; s < (int)stocareTablete.size(); s++) {
+                std::string nume = brandTablete[b] + " " + modelTablete[b] + " " + stocareTablete[s];
+                double pret = pretTablete[(b + s) % pretTablete.size()];
+                int cant = 4 + (b + s) % 6;
+                inserareProdus(nume, cant, pret, 3, zonaTelefon, 1, 1);
+            }
+        }
+
+        // Cafea - brand x gramaj x tip
+        std::vector<std::string> brandCafea = {"Jacobs", "Lavazza", "Illy", "Nescafe", "Doncafe", "Julius Meinl"};
+        std::vector<std::string> gramajCafea = {"100g", "250g", "500g", "1kg"};
+        std::vector<std::string> tipCafea = {"Boabe", "Macinata", "Instant"};
+        std::vector<double> pretCafea = {15, 28, 45, 72, 95};
+        int zonaCafea = 4; // Zona D - 50%
+        for (int b = 0; b < (int)brandCafea.size(); b++) {
+            for (int g = 0; g < (int)gramajCafea.size(); g++) {
+                for (int t = 0; t < (int)tipCafea.size(); t++) {
+                    std::string nume = "Cafea " + brandCafea[b] + " " + gramajCafea[g] + " " + tipCafea[t];
+                    double pret = pretCafea[(b + g) % pretCafea.size()];
+                    int cant = 3 + (b + g + t) % 6;
+                    inserareProdus(nume, cant, pret, 5, zonaCafea, 2, 2);
+                }
+            }
+        }
+
+        // Uleiuri - brand x tip x volum
+        std::vector<std::string> brandUlei = {"Bunica", "Floriol", "Unisol", "Argus", "Mester"};
+        std::vector<std::string> tipUlei = {"Floarea Soarelui", "Masline Extra Virgin", "Rapita", "Cocos"};
+        std::vector<std::string> volumUlei = {"500ml", "1L", "2L", "5L"};
+        std::vector<double> pretUlei = {8, 12, 22, 48, 65};
+        int zonaUlei = 4; // Zona D
+        for (int b = 0; b < (int)brandUlei.size(); b++) {
+            for (int t = 0; t < (int)tipUlei.size(); t++) {
+                for (int v = 0; v < (int)volumUlei.size(); v++) {
+                    std::string nume = "Ulei " + brandUlei[b] + " " + tipUlei[t] + " " + volumUlei[v];
+                    double pret = pretUlei[(b + t + v) % pretUlei.size()];
+                    int cant = 5 + (b + t + v) % 10;
+                    inserareProdus(nume, cant, pret, 8, zonaUlei, 2, 2);
+                }
+            }
+        }
+
+        // Paste fainoase - brand x tip x gramaj
+        std::vector<std::string> brandPaste = {"Barilla", "La Molisana", "Divella", "Panzani", "Baneasa"};
+        std::vector<std::string> tipPaste = {"Spaghetti", "Penne", "Fusilli", "Farfalle", "Tagliatelle", "Rigatoni"};
+        std::vector<std::string> gramajPaste = {"400g", "500g", "1kg"};
+        std::vector<double> pretPaste = {5, 8, 12, 18};
+        int zonaPaste = 5; // Zona E - 40%
+        for (int b = 0; b < (int)brandPaste.size(); b++) {
+            for (int t = 0; t < (int)tipPaste.size(); t++) {
+                for (int g = 0; g < (int)gramajPaste.size(); g++) {
+                    std::string nume = brandPaste[b] + " " + tipPaste[t] + " " + gramajPaste[g];
+                    double pret = pretPaste[(b + t + g) % pretPaste.size()];
+                    int cant = 4 + (b + t + g) % 8;
+                    inserareProdus(nume, cant, pret, 10, zonaPaste, 2, 2);
+                }
+            }
+        }
+
+        // Orez - brand x tip x gramaj
+        std::vector<std::string> brandOrez = {"Uncle Bens", "Baneasa", "SeleRiso", "Risella", "Carmencita"};
+        std::vector<std::string> tipOrez = {"Basmati", "Jasmine", "Arborio", "Negru", "Brun"};
+        std::vector<std::string> gramajOrez = {"500g", "1kg", "2kg", "5kg"};
+        std::vector<double> pretOrez = {6, 10, 18, 28};
+        for (int b = 0; b < (int)brandOrez.size(); b++) {
+            for (int t = 0; t < (int)tipOrez.size(); t++) {
+                for (int g = 0; g < (int)gramajOrez.size(); g++) {
+                    std::string nume = "Orez " + brandOrez[b] + " " + tipOrez[t] + " " + gramajOrez[g];
+                    double pret = pretOrez[(b + t + g) % pretOrez.size()];
+                    int cant = 3 + (b + t + g) % 7;
+                    inserareProdus(nume, cant, pret, 8, zonaPaste, 2, 2);
+                }
+            }
+        }
+
+        // Sampon - brand x tip x volum
+        std::vector<std::string> brandSampon = {"Pantene", "Head & Shoulders", "Dove", "Garnier", "L Oreal", "Elvive"};
+        std::vector<std::string> tipSampon = {"Par Normal", "Par Gras", "Par Uscat", "Anti-Matreata", "Reparator"};
+        std::vector<std::string> volumSampon = {"200ml", "400ml", "700ml"};
+        std::vector<double> pretSampon = {14, 22, 35, 48};
+        int zonaSampon = 6; // Zona F - 35%
+        for (int b = 0; b < (int)brandSampon.size(); b++) {
+            for (int t = 0; t < (int)tipSampon.size(); t++) {
+                for (int v = 0; v < (int)volumSampon.size(); v++) {
+                    std::string nume = "Sampon " + brandSampon[b] + " " + tipSampon[t] + " " + volumSampon[v];
+                    double pret = pretSampon[(b + t + v) % pretSampon.size()];
+                    int cant = 2 + (b + t + v) % 5;
+                    inserareProdus(nume, cant, pret, 5, zonaSampon, 3, 3);
+                }
+            }
+        }
+
+        // Creme - brand x tip x gramaj
+        std::vector<std::string> brandCrema = {"Nivea", "Garnier", "Dove", "L Oreal", "Neutrogena"};
+        std::vector<std::string> tipCrema = {"Hidratanta", "Anti-Rid", "Nutritiva", "SPF 50", "Noapte"};
+        std::vector<std::string> gramajCrema = {"50ml", "100ml", "200ml"};
+        std::vector<double> pretCrema = {18, 28, 45, 65, 85};
+        for (int b = 0; b < (int)brandCrema.size(); b++) {
+            for (int t = 0; t < (int)tipCrema.size(); t++) {
+                for (int g = 0; g < (int)gramajCrema.size(); g++) {
+                    std::string nume = "Crema " + brandCrema[b] + " " + tipCrema[t] + " " + gramajCrema[g];
+                    double pret = pretCrema[(b + t) % pretCrema.size()];
+                    int cant = 2 + (b + t + g) % 6;
+                    inserareProdus(nume, cant, pret, 5, zonaSampon, 3, 3);
+                }
+            }
+        }
+
+        // Parfumuri - brand x model x ml
+        std::vector<std::string> brandParfum = {"Chanel", "Dior", "Hugo Boss", "Armani", "Paco Rabanne", "Calvin Klein"};
+        std::vector<std::string> modelParfum = {"No 5", "Sauvage", "Bottled", "Acqua di Gio", "Invictus", "Eternity"};
+        std::vector<std::string> mlParfum = {"30ml", "50ml", "100ml"};
+        std::vector<double> pretParfum = {180, 280, 420, 580, 750};
+        int zonaParfum = 7; // Zona G - 25%
+        for (int b = 0; b < (int)brandParfum.size(); b++) {
+            for (int v = 0; v < (int)mlParfum.size(); v++) {
+                std::string nume = "Parfum " + brandParfum[b] + " " + modelParfum[b] + " " + mlParfum[v];
+                double pret = pretParfum[(b + v) % pretParfum.size()];
+                int cant = 2 + (b + v) % 4;
+                inserareProdus(nume, cant, pret, 3, zonaParfum, 3, 3);
+            }
+        }
+
+        // Deodorante - brand x tip x volum
+        std::vector<std::string> brandDeo = {"Rexona", "Nivea", "Dove", "Axe", "Old Spice", "Gillette"};
+        std::vector<std::string> tipDeo = {"Men", "Women", "Sensitive", "Sport", "Fresh"};
+        std::vector<std::string> volumDeo = {"150ml", "250ml"};
+        std::vector<double> pretDeo = {12, 18, 24, 32};
+        for (int b = 0; b < (int)brandDeo.size(); b++) {
+            for (int t = 0; t < (int)tipDeo.size(); t++) {
+                for (int v = 0; v < (int)volumDeo.size(); v++) {
+                    std::string nume = "Deodorant " + brandDeo[b] + " " + tipDeo[t] + " " + volumDeo[v];
+                    double pret = pretDeo[(b + t + v) % pretDeo.size()];
+                    int cant = 3 + (b + t + v) % 6;
+                    inserareProdus(nume, cant, pret, 5, zonaParfum, 3, 3);
+                }
+            }
+        }
+
+        // Scaune - brand x tip x culoare
+        std::vector<std::string> brandScaun = {"DXRacer", "Noblechairs", "Secretlab", "IKEA", "Hm"};
+        std::vector<std::string> tipScaun = {"Gaming", "Office", "Executive", "Ergonomic"};
+        std::vector<std::string> culoareScaun = {"Negru", "Alb", "Rosu", "Albastru"};
+        std::vector<double> pretScaun = {450, 800, 1200, 1800, 2500};
+        int zonaScaun = 8; // Zona H - 20%
+        for (int b = 0; b < (int)brandScaun.size(); b++) {
+            for (int t = 0; t < (int)tipScaun.size(); t++) {
+                for (int c = 0; c < (int)culoareScaun.size(); c++) {
+                    std::string nume = "Scaun " + brandScaun[b] + " " + tipScaun[t] + " " + culoareScaun[c];
+                    double pret = pretScaun[(b + t + c) % pretScaun.size()];
+                    int cant = 1 + (b + t + c) % 3;
+                    inserareProdus(nume, cant, pret, 2, zonaScaun, 4, 4);
+                }
+            }
+        }
+
+        // Birouri - brand x dimensiune x material
+        std::vector<std::string> brandBirou = {"IKEA", "Samas", "Steelcase", "Herman Miller"};
+        std::vector<std::string> dimBirou = {"120x60cm", "140x70cm", "160x80cm", "180x90cm"};
+        std::vector<std::string> matBirou = {"Lemn", "Metal", "Sticla", "MDF"};
+        std::vector<double> pretBirou = {450, 800, 1400, 2200, 3500};
+        for (int b = 0; b < (int)brandBirou.size(); b++) {
+            for (int d = 0; d < (int)dimBirou.size(); d++) {
+                for (int m = 0; m < (int)matBirou.size(); m++) {
+                    std::string nume = "Birou " + brandBirou[b] + " " + dimBirou[d] + " " + matBirou[m];
+                    double pret = pretBirou[(b + d + m) % pretBirou.size()];
+                    int cant = 1 + (b + d + m) % 3;
+                    inserareProdus(nume, cant, pret, 2, zonaScaun, 4, 4);
+                }
+            }
+        }
+
+        // Routere - brand x standard x viteza
+        std::vector<std::string> brandRouter = {"Asus", "TP-Link", "Netgear", "Dlink", "Ubiquiti"};
+        std::vector<std::string> standardRouter = {"WiFi 5", "WiFi 6", "WiFi 6E"};
+        std::vector<std::string> vitezaRouter = {"AC1200", "AC2400", "AX3000", "AX6000"};
+        std::vector<double> pretRouter = {120, 250, 450, 750, 1200};
+        int zonaRetea = 9; // Zona I - 15%
+        for (int b = 0; b < (int)brandRouter.size(); b++) {
+            for (int s = 0; s < (int)standardRouter.size(); s++) {
+                for (int v = 0; v < (int)vitezaRouter.size(); v++) {
+                    std::string nume = "Router " + brandRouter[b] + " " + standardRouter[s] + " " + vitezaRouter[v];
+                    double pret = pretRouter[(b + s + v) % pretRouter.size()];
+                    int cant = 2 + (b + s + v) % 5;
+                    inserareProdus(nume, cant, pret, 3, zonaRetea, 5, 5);
+                }
+            }
+        }
+
+        // SSD - brand x capacitate x interfata
+        std::vector<std::string> brandSSD = {"Samsung", "Kingston", "WD", "Seagate", "Crucial"};
+        std::vector<std::string> capacitateSSD = {"256GB", "512GB", "1TB", "2TB", "4TB"};
+        std::vector<std::string> interfataSSD = {"SATA", "NVMe M.2", "PCIe 4.0"};
+        std::vector<double> pretSSD = {150, 280, 450, 750, 1200};
+        int zonaSSD = 10; // Zona J - 10%
+        for (int b = 0; b < (int)brandSSD.size(); b++) {
+            for (int c = 0; c < (int)capacitateSSD.size(); c++) {
+                for (int i = 0; i < (int)interfataSSD.size(); i++) {
+                    std::string nume = "SSD " + brandSSD[b] + " " + capacitateSSD[c] + " " + interfataSSD[i];
+                    double pret = pretSSD[(b + c + i) % pretSSD.size()];
+                    int cant = 1 + (b + c + i) % 4;
+                    inserareProdus(nume, cant, pret, 3, zonaSSD, 5, 5);
+                }
+            }
+        }
+
+        // RAM - brand x capacitate x frecventa
+        std::vector<std::string> brandRAM = {"Corsair", "Kingston", "G.Skill", "Crucial"};
+        std::vector<std::string> capacitateRAM = {"8GB", "16GB", "32GB", "64GB"};
+        std::vector<std::string> frecventaRAM = {"DDR4 3200", "DDR4 3600", "DDR5 5200", "DDR5 6000"};
+        std::vector<double> pretRAM = {120, 220, 380, 650};
+        int zonaRAM = 11; // Zona K - 8%
+        for (int b = 0; b < (int)brandRAM.size(); b++) {
+            for (int c = 0; c < (int)capacitateRAM.size(); c++) {
+                for (int f = 0; f < (int)frecventaRAM.size(); f++) {
+                    std::string nume = "RAM " + brandRAM[b] + " " + capacitateRAM[c] + " " + frecventaRAM[f];
+                    double pret = pretRAM[(b + c + f) % pretRAM.size()];
+                    int cant = 2 + (b + c + f) % 4;
+                    inserareProdus(nume, cant, pret, 3, zonaRAM, 5, 5);
+                }
+            }
+        }
+
+        // Placi video - brand x model x VRAM
+        std::vector<std::string> brandGPU = {"Nvidia", "AMD", "Asus", "MSI", "Gigabyte"};
+        std::vector<std::string> modelGPU = {"RTX 4060", "RTX 4070", "RX 7600", "RX 7800", "RTX 4080"};
+        std::vector<std::string> vramGPU = {"8GB", "12GB", "16GB"};
+        std::vector<double> pretGPU = {1200, 2200, 3500, 4800};
+        int zonaGPU = 12; // Zona L - 5%
+        for (int b = 0; b < (int)brandGPU.size(); b++) {
+            for (int v = 0; v < (int)vramGPU.size(); v++) {
+                std::string nume = "Placa Video " + brandGPU[b] + " " + modelGPU[b % modelGPU.size()] + " " + vramGPU[v];
+                double pret = pretGPU[(b + v) % pretGPU.size()];
+                int cant = 1 + (b + v) % 3;
+                inserareProdus(nume, cant, pret, 2, zonaGPU, 5, 5);
+            }
+        }
+
+        // Procesoare - brand x model x frecventa
+        std::vector<std::string> brandCPU = {"Intel", "AMD"};
+        std::vector<std::string> modelIntel = {"Core i5-13400", "Core i5-13600K", "Core i7-13700K", "Core i9-13900K", "Core i5-14400", "Core i7-14700K"};
+        std::vector<std::string> modelAMD = {"Ryzen 5 7600", "Ryzen 5 7600X", "Ryzen 7 7700X", "Ryzen 9 7900X", "Ryzen 5 8600X", "Ryzen 7 9700X"};
+        std::vector<double> pretCPU = {850, 1200, 1800, 2800, 3500};
+        int zonaCPU = 13; // Zona M - 3%
+        for (int m = 0; m < (int)modelIntel.size(); m++) {
+            int cant = 1 + m % 2;
+            inserareProdus("Procesor " + modelIntel[m], cant,
+                pretCPU[m % pretCPU.size()], 2, zonaCPU, 5, 5);
+        }
+        for (int m = 0; m < (int)modelAMD.size(); m++) {
+            int cant = 1 + m % 2;
+            inserareProdus("Procesor " + modelAMD[m], cant,
+                pretCPU[m % pretCPU.size()], 2, zonaCPU, 5, 5);
+        }
+
+        // Zone N, O, P - goale (rezervate)
+
+        executeSQL("COMMIT;");
     }
 
     // ===== AUTH =====
@@ -309,9 +549,7 @@ public:
 
     void dezactiveazaUser(int id) {
         sqlite3_stmt* stmt;
-        sqlite3_prepare_v2(db,
-            "UPDATE users SET activ = 0 WHERE id = ?",
-            -1, &stmt, nullptr);
+        sqlite3_prepare_v2(db, "UPDATE users SET activ = 0 WHERE id = ?", -1, &stmt, nullptr);
         sqlite3_bind_int(stmt, 1, id);
         sqlite3_step(stmt);
         sqlite3_finalize(stmt);
@@ -319,9 +557,7 @@ public:
 
     void activeazaUser(int id) {
         sqlite3_stmt* stmt;
-        sqlite3_prepare_v2(db,
-            "UPDATE users SET activ = 1 WHERE id = ?",
-            -1, &stmt, nullptr);
+        sqlite3_prepare_v2(db, "UPDATE users SET activ = 1 WHERE id = ?", -1, &stmt, nullptr);
         sqlite3_bind_int(stmt, 1, id);
         sqlite3_step(stmt);
         sqlite3_finalize(stmt);
@@ -378,9 +614,7 @@ public:
 
     void updateCantitate(int produsId, int cantitateNoua) {
         sqlite3_stmt* stmt;
-        sqlite3_prepare_v2(db,
-            "UPDATE produse SET cantitate = ? WHERE id = ?",
-            -1, &stmt, nullptr);
+        sqlite3_prepare_v2(db, "UPDATE produse SET cantitate = ? WHERE id = ?", -1, &stmt, nullptr);
         sqlite3_bind_int(stmt, 1, cantitateNoua);
         sqlite3_bind_int(stmt, 2, produsId);
         sqlite3_step(stmt);
@@ -431,9 +665,7 @@ public:
 
     void updateZona(int zonaId, int capacitateCurenta) {
         sqlite3_stmt* stmt;
-        sqlite3_prepare_v2(db,
-            "UPDATE zone SET capacitate_curenta = ? WHERE id = ?",
-            -1, &stmt, nullptr);
+        sqlite3_prepare_v2(db, "UPDATE zone SET capacitate_curenta = ? WHERE id = ?", -1, &stmt, nullptr);
         sqlite3_bind_int(stmt, 1, capacitateCurenta);
         sqlite3_bind_int(stmt, 2, zonaId);
         sqlite3_step(stmt);
@@ -445,8 +677,7 @@ public:
         executeSQL(R"(
             UPDATE zone SET capacitate_curenta = (
                 SELECT COALESCE(SUM(cantitate), 0)
-                FROM produse
-                WHERE produse.zona_id = zone.id
+                FROM produse WHERE produse.zona_id = zone.id
             )
         )");
     }
@@ -469,9 +700,7 @@ public:
 
     void adaugaCategorie(const Categorie& c) {
         sqlite3_stmt* stmt;
-        sqlite3_prepare_v2(db,
-            "INSERT INTO categorii (nume, descriere) VALUES (?,?)",
-            -1, &stmt, nullptr);
+        sqlite3_prepare_v2(db, "INSERT INTO categorii (nume, descriere) VALUES (?,?)", -1, &stmt, nullptr);
         sqlite3_bind_text(stmt, 1, c.getNume().c_str(), -1, SQLITE_STATIC);
         sqlite3_bind_text(stmt, 2, c.getDescriere().c_str(), -1, SQLITE_STATIC);
         sqlite3_step(stmt);
@@ -497,9 +726,7 @@ public:
 
     void adaugaFurnizor(const Furnizor& f) {
         sqlite3_stmt* stmt;
-        sqlite3_prepare_v2(db,
-            "INSERT INTO furnizori (nume, telefon, email) VALUES (?,?,?)",
-            -1, &stmt, nullptr);
+        sqlite3_prepare_v2(db, "INSERT INTO furnizori (nume, telefon, email) VALUES (?,?,?)", -1, &stmt, nullptr);
         sqlite3_bind_text(stmt, 1, f.getNume().c_str(), -1, SQLITE_STATIC);
         sqlite3_bind_text(stmt, 2, f.getTelefon().c_str(), -1, SQLITE_STATIC);
         sqlite3_bind_text(stmt, 3, f.getEmail().c_str(), -1, SQLITE_STATIC);
