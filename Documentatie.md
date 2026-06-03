@@ -33,7 +33,7 @@ administrarea utilizatorilor cu roluri diferite.
 # Sistem de Monitorizare a Stocurilor unui Depozit
 
 ## Informatii Generale
-- **Autor:** [Numele tau]
+- **Autor:** Floristeanu Vlad
 - **Materie:** Programare Orientata pe Obiecte
 - **An universitar:** 2025-2026
 - **Branch Git:** develop
